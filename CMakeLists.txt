@@ -19,6 +19,7 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         src/xmlpp.cpp
         src/main.cpp
+        src/modelgenerator.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

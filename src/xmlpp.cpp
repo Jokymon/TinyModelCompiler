@@ -1,5 +1,32 @@
 #include "xmlpp.h"
 
+bool operator==(const xml_node::node_iterator &lhs, const xml_node::node_iterator &rhs)
+{
+    return lhs._node == rhs._node;
+}
+
+bool operator!=(const xml_node::node_iterator &lhs, const xml_node::node_iterator &rhs)
+{
+    return lhs._node != rhs._node;
+}
+
+xml_node::node_iterator& xml_node::node_iterator::operator++()
+{
+    if (_node)
+        _node = _node->next;
+    return *this;
+}
+
+xml_node xml_node::node_iterator::operator*()
+{
+    return xml_node(_node);
+}
+
+xml_node::node_iterator::node_iterator(xmlNodePtr node) :
+    _node(node)
+{
+}
+
 xml_node::xml_node(xmlNodePtr node) :
     _node(node)
 {
@@ -17,14 +44,42 @@ std::string xml_node::data() const
                 );
 }
 
-xml_node xml_node::first_child() const
+void xml_node::set_data(const std::string &data)
 {
-    return xml_node(_node->children);
+    xmlNodeSetContent(_node, reinterpret_cast<const xmlChar*>(
+                data.c_str()));
 }
 
-xml_node xml_node::next_sibling() const
+bool xml_node::has_attribute(const std::string &name) const
 {
-    return xml_node(_node->next);
+    return true;
+}
+
+std::string xml_node::attribute(const std::string &name) const
+{
+    char* attribute = (char*)xmlGetProp(_node, (xmlChar*)name.c_str());
+    if (attribute)
+        return std::string(attribute);
+    return std::string();
+}
+
+void xml_node::set_attribute(const std::string &name,
+                            const std::string &value)
+{
+    xmlSetProp(_node,
+        reinterpret_cast<const xmlChar*>(name.c_str()),
+        reinterpret_cast<const xmlChar*>(value.c_str())
+    );
+}
+
+xml_node::node_iterator xml_node::begin()
+{
+    return node_iterator(_node->children);
+}
+
+xml_node::node_iterator xml_node::end()
+{
+    return node_iterator(nullptr);
 }
 
 xml_node xml_node::create_child(const std::string &tag_name)
