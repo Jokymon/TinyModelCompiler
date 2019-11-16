@@ -1,5 +1,49 @@
 #include "modelgenerator.h"
+#include <array>
 #include <iostream>
+
+struct alias {
+    std::string alias;
+    int id;
+};
+
+const std::array<alias, 35> Aliases = {{
+    { "Boolean", 1 },
+    { "SByte", 2 },
+    { "Byte", 3 },
+    { "Int16", 4 },
+    { "UInt16", 5 },
+    { "Int32", 6 },
+    { "UInt32", 7 },
+    { "Int64", 8 },
+    { "UInt64", 9 },
+    { "Float", 10 },
+    { "Double", 11 },
+    { "DateTime", 13 },
+    { "String", 12 },
+    { "ByteString", 15 },
+    { "Guid", 14 },
+    { "XmlElement", 16 },
+    { "NodeId", 17 },
+    { "ExpandedNodeId", 18 },
+    { "QualifiedName", 20 },
+    { "LocalizedText", 21 },
+    { "StatusCode", 19 },
+    { "Structure", 22 },
+    { "Number", 26 },
+    { "Integer", 27 },
+    { "UInteger", 28 },
+    { "HasComponent", 47 },
+    { "HasProperty", 46 },
+    { "Organizes", 35 },
+    { "HasEventSource", 36 },
+    { "HasNotifier", 48 },
+    { "HasSubtype", 45 },
+    { "HasTypeDefinition", 40 },
+    { "HasModellingRule", 37 },
+    { "HasEncoding", 38 },
+    { "HasDescription", 39 }
+}};
 
 model_generator::model_generator() :
     _namespaces()
@@ -36,9 +80,7 @@ void model_generator::write_nodeset2()
     }
 
     auto aliases = doc.root().create_child("Aliases");
-    auto alias1 = aliases.create_child("Alias");
-    alias1.set_data("i=1");
-    alias1.set_attribute("Alias", "Boolean");
+    generate_aliases(aliases);
 
     doc.dump_file("MemoryBuffer.NodeSet2.xml");
 }
@@ -52,5 +94,15 @@ void model_generator::parse_namespaces(xml_node &namespaces_node)
 
         std::string url = namespace_node.data();
         _namespaces.push_back(url);
+    }
+}
+
+void model_generator::generate_aliases(xml_node &aliases_node)
+{
+    for (const auto &alias : Aliases)
+    {
+        auto alias_node = aliases_node.create_child("Alias");
+        alias_node.set_data("i="+std::to_string(alias.id));
+        alias_node.set_attribute("Alias", alias.alias);
     }
 }

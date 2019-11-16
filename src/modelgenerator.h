@@ -16,6 +16,7 @@ public:
 
 private:
     void parse_namespaces(xml_node &namespaces_node);
+    void generate_aliases(xml_node &aliases_node);
 
 private:
     std::vector<std::string> _namespaces;
