@@ -12,6 +12,8 @@ public:
 
     int namespace_id;
     std::variant<int, std::string> id;
+
+    std::string to_string() const;
 };
 
 class ua_node;

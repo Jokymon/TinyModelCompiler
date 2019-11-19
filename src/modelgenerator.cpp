@@ -60,6 +60,7 @@ public:
     void visit(ua_variable_type &node) override
     {
         auto variable_node = node_set.create_child("UAVariableType");
+        variable_node.set_attribute("NodeId", node.node_id.to_string());
         variable_node.set_attribute("ValueRank", "-2");
 
         auto display_name = variable_node.create_child("DisplayName");
