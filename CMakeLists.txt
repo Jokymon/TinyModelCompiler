@@ -8,7 +8,7 @@ project(TinyModelCompiler
 
 include(ExternalProject)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 set(extern_INSTALL_DIR "${CMAKE_BINARY_DIR}/local")
 include(xml2)
@@ -20,6 +20,7 @@ target_sources(${PROJECT_NAME}
         src/xmlpp.cpp
         src/main.cpp
         src/modelgenerator.cpp
+        src/ua_model.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
