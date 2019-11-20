@@ -138,7 +138,7 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
         return;
     }
 
-    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(1, 1000), symbolic_name));
+    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(1, 1000), symbolic_name, symbolic_name));
 
     std::cout << "Name=" << symbolic_name << std::endl;
     std::cout << "BaseType=" << base_type << std::endl;

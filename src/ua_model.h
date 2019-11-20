@@ -14,6 +14,7 @@ public:
     std::variant<int, std::string> id;
 
     std::string to_string() const;
+    static void from_string(const std::string &s);
 };
 
 class ua_node;
@@ -29,9 +30,10 @@ public:
 class ua_node
 {
 public:
-    ua_node(const ua_node_id& node_id, const std::string &display_name);
+    ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name);
 
     ua_node_id node_id;
+    std::string browse_name;
     std::string display_name;
 
     virtual void visit(ua_node_visitor&) =0;
@@ -41,8 +43,8 @@ template<class T>
 class visitable_ua_node : public ua_node
 {
 public:
-    visitable_ua_node(const ua_node_id& node_id, const std::string &display_name) :
-        ua_node(node_id, display_name)
+    visitable_ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
+        ua_node(node_id, browse_name, display_name)
     {
     }
 
@@ -55,7 +57,7 @@ public:
 class ua_variable_type : public visitable_ua_node<ua_variable_type>
 {
 public:
-    ua_variable_type(const ua_node_id& node_id, const std::string &display_name);
+    ua_variable_type(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name);
 };
 
 #endif

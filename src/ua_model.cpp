@@ -1,4 +1,6 @@
 #include "ua_model.h"
+#include <iostream>
+#include <regex>
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
@@ -34,13 +36,25 @@ std::string ua_node_id::to_string() const
     return str;
 }
 
-ua_node::ua_node(const ua_node_id& node_id, const std::string &display_name) :
+void ua_node_id::from_string(const std::string &s)
+{
+    if (s.find('=') == std::string::npos)
+    {
+        throw "Invalid node ID";
+    }
+    std::cout << "Parsing " << s << std::endl;
+    std::regex re("=");
+    std::sregex_token_iterator it(s.begin(), s.end(), re, -1);
+}
+
+ua_node::ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
     node_id(node_id),
+    browse_name(browse_name),
     display_name(display_name)
 {
 }
 
-ua_variable_type::ua_variable_type(const ua_node_id& node_id, const std::string &display_name) :
-    visitable_ua_node(node_id, display_name)
+ua_variable_type::ua_variable_type(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
+    visitable_ua_node(node_id, browse_name, display_name)
 {
 }

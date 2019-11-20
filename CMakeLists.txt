@@ -13,11 +13,30 @@ set(CMAKE_CXX_STANDARD 17)
 set(extern_INSTALL_DIR "${CMAKE_BINARY_DIR}/local")
 include(xml2)
 
+add_library(libxml2_wrapper)
+
+target_sources(libxml2_wrapper
+    PRIVATE
+        src/xmlpp.cpp
+)
+
+target_include_directories(libxml2_wrapper
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/local/include>
+)
+
+target_link_libraries(libxml2_wrapper
+    PRIVATE
+        xml2
+)
+
+# -------------------------------------------------------------
+
 add_executable(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-        src/xmlpp.cpp
         src/main.cpp
         src/modelgenerator.cpp
         src/ua_model.cpp
@@ -31,5 +50,28 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-        xml2
+        libxml2_wrapper
 )
+
+# -------------------------------------------------------------
+
+add_executable(generate_ua_nodeset2)
+
+target_sources(generate_ua_nodeset2
+    PRIVATE
+        src/generate_ua_nodeset2.cpp
+        src/ua_nodeset2_generator.cpp
+        src/ua_model.cpp
+)
+
+target_include_directories(generate_ua_nodeset2
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/local/include>
+)
+
+target_link_libraries(generate_ua_nodeset2
+    PUBLIC
+        libxml2_wrapper
+)
+
