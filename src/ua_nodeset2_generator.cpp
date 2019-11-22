@@ -24,9 +24,11 @@ public:
         else if (std::holds_alternative<std::string>(address_part))
             address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
         
-        out << std::string("    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(")
-                << node.node_id.namespace_id << ", " << address_part_str << "), \""
-                << node.browse_name << std::string("\"));\n");
+        out << std::string("    nodes[\"") << node.browse_name.to_string() << std::string("\"] = ")
+                << std::string("std::make_unique<ua_variable_type>(ua_node_id(")
+                << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
+                << node.browse_name.to_string() << std::string("\"), \"")
+                << node.browse_name.to_string() << std::string("\");\n");
     }
 
 private:
@@ -63,10 +65,11 @@ void ua_nodeset2_generator::write_nodeset2_sources()
     h_source << "#ifndef OPC_UA_NODESET2_H\n";
     h_source << "#define OPC_UA_NODESET2_H\n\n";
     h_source << "#include \"ua_model.h\"\n";
+    h_source << "#include <map>\n";
     h_source << "#include <memory>\n";
-    h_source << "#include <vector>\n\n";
+    h_source << "#include <string>\n";
 
-    h_source << "void populate_node_list(std::vector<std::unique_ptr<ua_node>> &nodes);\n\n";
+    h_source << "void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes);\n\n";
 
     h_source << "#endif\n";
 
@@ -74,8 +77,9 @@ void ua_nodeset2_generator::write_nodeset2_sources()
 
     std::ofstream cpp_source("opc_ua_nodeset2.cpp");
 
+    cpp_source << "#include \"opc_ua_nodeset2.h\"\n";
     cpp_source << "#include \"ua_model.h\"\n\n";
-    cpp_source << "void populate_node_list(std::vector<std::unique_ptr<ua_node>> &nodes)\n";
+    cpp_source << "void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes)\n";
     cpp_source << "{\n";
 
     node_code_generator generator(cpp_source);
@@ -91,7 +95,7 @@ void ua_nodeset2_generator::parse_variable_type(xml_node &variable_type_node)
 {
     std::string node_id_str = variable_type_node.attribute("NodeId");
     auto node_id = ua_node_id::from_string(node_id_str);
-    std::string browse_name = variable_type_node.attribute("BrowseName");
+    qualified_name browse_name{0, variable_type_node.attribute("BrowseName")};
     int value_rank = -1;
     if (variable_type_node.has_attribute("ValueRank"))
     {

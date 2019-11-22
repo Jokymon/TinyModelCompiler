@@ -147,14 +147,42 @@ ua_node_id ua_node_id::from_string(const std::string &s)
     return parse_node_id(s);
 }
 
-ua_node::ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
+qualified_name::qualified_name(const std::string &name) :
+    namespace_index(0),
+    name(name)
+{
+}
+
+qualified_name::qualified_name(int namespace_index, const std::string &name) :
+    namespace_index(namespace_index),
+    name(name)
+{
+}
+
+std::string qualified_name::to_string() const
+{
+    if (namespace_index==0)
+    {
+        return name;
+    }
+    return std::to_string(namespace_index) + std::string(":") + name;
+}
+
+reference::reference(const std::string &reference_type, bool is_forward, const std::string &value) :
+    reference_type(reference_type),
+    is_forward(is_forward),
+    value(value)
+{
+}
+
+ua_node::ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
     node_id(node_id),
     browse_name(browse_name),
     display_name(display_name)
 {
 }
 
-ua_variable_type::ua_variable_type(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
+ua_variable_type::ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
     visitable_ua_node(node_id, browse_name, display_name)
 {
 }

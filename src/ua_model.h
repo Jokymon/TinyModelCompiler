@@ -3,6 +3,7 @@
 
 #include <string>
 #include <variant>
+#include <vector>
 
 class ua_node_id
 {
@@ -15,6 +16,28 @@ public:
 
     std::string to_string() const;
     static ua_node_id from_string(const std::string &s);
+};
+
+class qualified_name
+{
+public:
+    explicit qualified_name(const std::string &name);
+    explicit qualified_name(int namespace_index, const std::string &name);
+
+    std::string to_string() const;
+
+    int namespace_index;
+    std::string name;
+};
+
+class reference
+{
+public:
+    explicit reference(const std::string &reference_type, bool is_forward, const std::string &value);
+
+    std::string reference_type;
+    bool is_forward;
+    std::string value;
 };
 
 class ua_node;
@@ -30,11 +53,13 @@ public:
 class ua_node
 {
 public:
-    ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name);
+    ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
 
     ua_node_id node_id;
-    std::string browse_name;
+    qualified_name browse_name;
     std::string display_name;
+
+    std::vector<reference> references;
 
     virtual void visit(ua_node_visitor&) =0;
 };
@@ -43,7 +68,7 @@ template<class T>
 class visitable_ua_node : public ua_node
 {
 public:
-    visitable_ua_node(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name) :
+    visitable_ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
         ua_node(node_id, browse_name, display_name)
     {
     }
@@ -57,7 +82,7 @@ public:
 class ua_variable_type : public visitable_ua_node<ua_variable_type>
 {
 public:
-    ua_variable_type(const ua_node_id& node_id, const std::string &browse_name, const std::string &display_name);
+    ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
 };
 
 #endif

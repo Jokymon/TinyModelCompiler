@@ -14,8 +14,6 @@ int main(int argc, char **argv)
 	}
 
     std::string docname = argv[1];
-    //parseDoc(docname.c_str());
-    //parse_doc(docname);
 
     model_generator mg;
 

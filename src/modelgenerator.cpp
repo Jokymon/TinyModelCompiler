@@ -1,4 +1,5 @@
 #include "modelgenerator.h"
+#include "opc_ua_nodeset2.h"
 #include <array>
 #include <iostream>
 
@@ -45,6 +46,16 @@ const std::array<alias, 35> Aliases = {{
     { "HasDescription", 39 }
 }};
 
+static bool ends_with(const std::string& str, const std::string& suffix)
+{
+    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
+
+static bool starts_with(const std::string& str, const std::string& prefix)
+{
+    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
+}
+
 class node_set_generator : public ua_node_visitor
 {
 public:
@@ -61,10 +72,23 @@ public:
     {
         auto variable_node = node_set.create_child("UAVariableType");
         variable_node.set_attribute("NodeId", node.node_id.to_string());
+        variable_node.set_attribute("BrowseName", node.browse_name.to_string());
         variable_node.set_attribute("ValueRank", "-2");
 
         auto display_name = variable_node.create_child("DisplayName");
         display_name.set_data(node.display_name);
+
+        if (node.references.size()>0)
+        {
+            auto references_node = variable_node.create_child("References");
+            for (auto &reference : node.references)
+            {
+                auto reference_node = references_node.create_child("Reference");
+                reference_node.set_attribute("ReferenceType", reference.reference_type);
+                reference_node.set_attribute("IsForward", reference.is_forward ? "true" : "false");
+                reference_node.set_data(reference.value);
+            }
+        }
     }
 
 private:
@@ -72,8 +96,11 @@ private:
 };
 
 model_generator::model_generator() :
-    _namespaces()
+    _namespaces(),
+    _ua_nodes(),
+    _ua_nodeset2()
 {
+    populate_node_list(_ua_nodeset2);
 }
 
 void model_generator::load_model(const std::string &model_file)
@@ -132,16 +159,22 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     std::string symbolic_name = variable_type_node.attribute("SymbolicName");
     std::string base_type = variable_type_node.attribute("BaseType");
 
-    if (base_type != "ua:BaseDataVariableType")
+    if (!starts_with(base_type, "ua:"))
     {
-        std::cerr << "Variable type definition with unknown BaseType '" << base_type << "'\n";
-        return;
+        throw std::invalid_argument("Reference types without prefix 'ua:' not supported");
     }
 
-    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(1, 1000), symbolic_name, symbolic_name));
+    std::string base_reference = base_type.substr(3);
+    if (_ua_nodeset2.find(base_reference) == _ua_nodeset2.end())
+    {
+        throw std::invalid_argument("Unkown reference");
+    }
 
-    std::cout << "Name=" << symbolic_name << std::endl;
-    std::cout << "BaseType=" << base_type << std::endl;
+    auto new_node = std::make_unique<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    auto &reference_node = _ua_nodeset2[base_reference];
+    new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
+
+    _ua_nodes.emplace_back(std::move(new_node));
 }
 
 void model_generator::generate_aliases(xml_node &aliases_node)

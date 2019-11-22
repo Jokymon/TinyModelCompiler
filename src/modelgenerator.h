@@ -3,6 +3,7 @@
 
 #include "ua_model.h"
 #include "xmlpp.h"
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,6 +27,9 @@ private:
 private:
     std::vector<std::string> _namespaces;
     std::vector<std::unique_ptr<ua_node>> _ua_nodes;
+    std::map<std::string, std::unique_ptr<ua_node>> _ua_nodeset2;
+
+    const int NamespaceIndex = 1;
 };
 
 #endif
