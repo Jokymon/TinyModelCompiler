@@ -3,6 +3,36 @@
 #include <fstream>
 #include <iostream>
 
+class node_code_generator : public ua_node_visitor
+{
+public:
+    explicit node_code_generator(std::ostream &out) :
+        out(out)
+    {}
+
+    void visit(ua_node &node) override
+    {
+        node.visit(*this);
+    }
+
+    void visit(ua_variable_type &node) override
+    {
+        std::string address_part_str;
+        auto address_part = node.node_id.id;
+        if (std::holds_alternative<int>(address_part))
+            address_part_str = std::to_string(std::get<int>(address_part));
+        else if (std::holds_alternative<std::string>(address_part))
+            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
+        
+        out << std::string("    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(")
+                << node.node_id.namespace_id << ", " << address_part_str << "), \""
+                << node.browse_name << std::string("\"));\n");
+    }
+
+private:
+    std::ostream &out;
+};
+
 ua_nodeset2_generator::ua_nodeset2_generator() :
     _ua_nodes()
 {
@@ -59,8 +89,8 @@ void ua_nodeset2_generator::write_nodeset2_sources()
 
 void ua_nodeset2_generator::parse_variable_type(xml_node &variable_type_node)
 {
-    std::string node_id = variable_type_node.attribute("NodeId");
-    ua_node_id::from_string(node_id);
+    std::string node_id_str = variable_type_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
     std::string browse_name = variable_type_node.attribute("BrowseName");
     int value_rank = -1;
     if (variable_type_node.has_attribute("ValueRank"))
@@ -77,6 +107,6 @@ void ua_nodeset2_generator::parse_variable_type(xml_node &variable_type_node)
     }
     std::string display_name;
 
-    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(1, 1000), browse_name, display_name));
+    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(node_id, browse_name, display_name));
 }
 

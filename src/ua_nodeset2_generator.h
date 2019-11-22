@@ -7,27 +7,6 @@
 #include <string>
 #include <vector>
 
-class node_code_generator : public ua_node_visitor
-{
-public:
-    explicit node_code_generator(std::ostream &out) :
-        out(out)
-    {}
-
-    void visit(ua_node &node) override
-    {
-        node.visit(*this);
-    }
-
-    void visit(ua_variable_type &node) override
-    {
-        out << std::string("    _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(ua_node_id(0, 1000), \"") << node.browse_name << std::string("\"));\n");
-    }
-
-private:
-    std::ostream &out;
-};
-
 class ua_nodeset2_generator
 {
 public:

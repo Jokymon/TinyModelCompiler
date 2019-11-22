@@ -14,7 +14,7 @@ public:
     std::variant<int, std::string> id;
 
     std::string to_string() const;
-    static void from_string(const std::string &s);
+    static ua_node_id from_string(const std::string &s);
 };
 
 class ua_node;
