@@ -69,6 +69,7 @@ target_include_directories(xml2
 )
 
 file(GLOB LIBXML2_HEADERS ${CMAKE_SOURCE_DIR}/include/libxml/*.h)
+list(APPEND LIBXML2_HEADERS ${CMAKE_BINARY_DIR}/include/libxml/xmlversion.h)
 
 target_sources(xml2
     PRIVATE
@@ -127,5 +128,5 @@ install(
     TARGETS xml2
     LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
+    PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_PREFIX}/include/libxml"
 )
