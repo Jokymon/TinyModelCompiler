@@ -5,6 +5,6 @@
 #include <map>
 #include <memory>
 #include <string>
-void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes);
+void populate_node_list(std::map<std::string, ua_node_ptr> &nodes);
 
 #endif

@@ -25,10 +25,12 @@ private:
     void generate_aliases(xml_node &aliases_node);
     void generate_nodes(xml_node &node_set);
 
+    ua_node_ptr& get_node(const std::string &browse_name);
+
 private:
     std::vector<std::string> _namespaces;
-    std::vector<std::unique_ptr<ua_node>> _ua_nodes;
-    std::map<std::string, std::unique_ptr<ua_node>> _ua_nodeset2;
+    std::vector<ua_node_ptr> _ua_nodes;
+    std::map<std::string, ua_node_ptr> _ua_nodeset2;
 
     const int NamespaceIndex = 1;
 };

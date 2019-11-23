@@ -1,6 +1,7 @@
 #ifndef UA_MODEL_H
 #define UA_MODEL_H
 
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -65,6 +66,8 @@ public:
 
     virtual void visit(ua_node_visitor&) =0;
 };
+
+typedef std::unique_ptr<ua_node> ua_node_ptr;
 
 template<class T>
 class visitable_ua_node : public ua_node

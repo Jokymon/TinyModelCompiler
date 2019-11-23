@@ -1,7 +1,7 @@
 #include "opc_ua_nodeset2.h"
 #include "ua_model.h"
 
-void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes)
+void populate_node_list(std::map<std::string, ua_node_ptr> &nodes)
 {
     nodes["BaseObjectType"] = std::make_unique<ua_object_type>(ua_node_id(0, 58), qualified_name("BaseObjectType"), "BaseObjectType");
     nodes["FolderType"] = std::make_unique<ua_object_type>(ua_node_id(0, 61), qualified_name("FolderType"), "FolderType");

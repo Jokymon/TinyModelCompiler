@@ -87,7 +87,7 @@ void ua_nodeset2_generator::write_nodeset2_sources()
     h_source << "#include <memory>\n";
     h_source << "#include <string>\n";
 
-    h_source << "void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes);\n\n";
+    h_source << "void populate_node_list(std::map<std::string, ua_node_ptr> &nodes);\n\n";
 
     h_source << "#endif\n";
 
@@ -97,7 +97,7 @@ void ua_nodeset2_generator::write_nodeset2_sources()
 
     cpp_source << "#include \"opc_ua_nodeset2.h\"\n";
     cpp_source << "#include \"ua_model.h\"\n\n";
-    cpp_source << "void populate_node_list(std::map<std::string, std::unique_ptr<ua_node>> &nodes)\n";
+    cpp_source << "void populate_node_list(std::map<std::string, ua_node_ptr> &nodes)\n";
     cpp_source << "{\n";
 
     node_code_generator generator(cpp_source);

@@ -21,7 +21,7 @@ private:
     void parse_object_type(xml_node &object_type_node);
 
 private:
-    std::vector<std::unique_ptr<ua_node>> _ua_nodes;
+    std::vector<ua_node_ptr> _ua_nodes;
 };
 
 #endif
