@@ -91,6 +91,28 @@ public:
         }
     }
 
+    void visit(ua_object_type &node) override
+    {
+        auto object_node = node_set.create_child("UAObjectType");
+        object_node.set_attribute("NodeId", node.node_id.to_string());
+        object_node.set_attribute("BrowseName", node.browse_name.to_string());
+
+        auto display_name = object_node.create_child("DisplayName");
+        display_name.set_data(node.display_name);
+
+        if (node.references.size()>0)
+        {
+            auto references_node = object_node.create_child("References");
+            for (auto &reference : node.references)
+            {
+                auto reference_node = references_node.create_child("Reference");
+                reference_node.set_attribute("ReferenceType", reference.reference_type);
+                reference_node.set_attribute("IsForward", reference.is_forward ? "true" : "false");
+                reference_node.set_data(reference.value);
+            }
+        }
+    }
+
 private:
     xml_node &node_set;
 };
@@ -120,6 +142,8 @@ void model_generator::load_model(const std::string &model_file)
             parse_namespaces(child);
         else if (child.name() == "VariableType")
             parse_variable_type(child);
+        else if (child.name() == "ObjectType")
+            parse_object_type(child);
     }
 }
 
@@ -171,6 +195,29 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     }
 
     auto new_node = std::make_unique<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    auto &reference_node = _ua_nodeset2[base_reference];
+    new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
+
+    _ua_nodes.emplace_back(std::move(new_node));
+}
+
+void model_generator::parse_object_type(xml_node &object_type_node)
+{
+    std::string symbolic_name = object_type_node.attribute("SymbolicName");
+    std::string base_type = object_type_node.attribute("BaseType");
+
+    if (!starts_with(base_type, "ua:"))
+    {
+        throw std::invalid_argument("Reference types without prefix 'ua:' not supported");
+    }
+
+    std::string base_reference = base_type.substr(3);
+    if (_ua_nodeset2.find(base_reference) == _ua_nodeset2.end())
+    {
+        throw std::invalid_argument("Unkown reference");
+    }
+
+    auto new_node = std::make_unique<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
     auto &reference_node = _ua_nodeset2[base_reference];
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
 

@@ -42,12 +42,14 @@ public:
 
 class ua_node;
 class ua_variable_type;
+class ua_object_type;
 
 class ua_node_visitor
 {
 public:
     virtual void visit(ua_node&) =0;
     virtual void visit(ua_variable_type&) =0;
+    virtual void visit(ua_object_type&) =0;
 };
 
 class ua_node
@@ -83,6 +85,12 @@ class ua_variable_type : public visitable_ua_node<ua_variable_type>
 {
 public:
     ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+};
+
+class ua_object_type : public visitable_ua_node<ua_object_type>
+{
+public:
+    ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
 };
 
 #endif

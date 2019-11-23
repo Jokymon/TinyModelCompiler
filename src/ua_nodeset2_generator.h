@@ -18,6 +18,7 @@ public:
 
 private:
     void parse_variable_type(xml_node &variable_type_node);
+    void parse_object_type(xml_node &object_type_node);
 
 private:
     std::vector<std::unique_ptr<ua_node>> _ua_nodes;

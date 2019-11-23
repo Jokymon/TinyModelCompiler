@@ -31,6 +31,22 @@ public:
                 << node.browse_name.to_string() << std::string("\");\n");
     }
 
+    void visit(ua_object_type &node) override
+    {
+        std::string address_part_str;
+        auto address_part = node.node_id.id;
+        if (std::holds_alternative<int>(address_part))
+            address_part_str = std::to_string(std::get<int>(address_part));
+        else if (std::holds_alternative<std::string>(address_part))
+            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
+        
+        out << std::string("    nodes[\"") << node.browse_name.to_string() << std::string("\"] = ")
+                << std::string("std::make_unique<ua_object_type>(ua_node_id(")
+                << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
+                << node.browse_name.to_string() << std::string("\"), \"")
+                << node.browse_name.to_string() << std::string("\");\n");
+    }
+
 private:
     std::ostream &out;
 };
@@ -55,6 +71,8 @@ void ua_nodeset2_generator::load_nodeset(const std::string &nodeset_file)
     {
         if (child.name() == "UAVariableType")
             parse_variable_type(child);
+        else if (child.name() == "UAObjectType")
+            parse_object_type(child);
     }
 }
 
@@ -114,3 +132,20 @@ void ua_nodeset2_generator::parse_variable_type(xml_node &variable_type_node)
     _ua_nodes.emplace_back(std::make_unique<ua_variable_type>(node_id, browse_name, display_name));
 }
 
+void ua_nodeset2_generator::parse_object_type(xml_node &object_type_node)
+{
+    std::string node_id_str = object_type_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
+    qualified_name browse_name{0, object_type_node.attribute("BrowseName")};
+
+    bool is_abstract = false;
+    if (object_type_node.has_attribute("IsAbstract"))
+    {
+        std::string abstract = object_type_node.attribute("IsAbstract");
+        if (abstract=="true")
+            is_abstract = true;
+    }
+    std::string display_name;
+
+    _ua_nodes.emplace_back(std::make_unique<ua_object_type>(node_id, browse_name, display_name));
+}
