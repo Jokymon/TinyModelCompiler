@@ -44,6 +44,8 @@ public:
 class ua_node;
 class ua_variable_type;
 class ua_object_type;
+class ua_variable;
+class ua_object;
 
 class ua_node_visitor
 {
@@ -51,6 +53,8 @@ public:
     virtual void visit(ua_node&) =0;
     virtual void visit(ua_variable_type&) =0;
     virtual void visit(ua_object_type&) =0;
+    virtual void visit(ua_variable&) =0;
+    virtual void visit(ua_object&) =0;
 };
 
 class ua_node
@@ -67,7 +71,7 @@ public:
     virtual void visit(ua_node_visitor&) =0;
 };
 
-typedef std::unique_ptr<ua_node> ua_node_ptr;
+typedef std::shared_ptr<ua_node> ua_node_ptr;
 
 template<class T>
 class visitable_ua_node : public ua_node
@@ -94,6 +98,24 @@ class ua_object_type : public visitable_ua_node<ua_object_type>
 {
 public:
     ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+};
+
+class ua_variable : public visitable_ua_node<ua_variable>
+{
+public:
+    ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+
+    ua_node_ptr parent;
+    std::string data_type;
+};
+
+class ua_object : public visitable_ua_node<ua_object>
+{
+public:
+    ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+
+    ua_node_ptr parent;
+    std::string data_type;
 };
 
 #endif

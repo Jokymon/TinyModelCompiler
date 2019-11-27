@@ -191,3 +191,13 @@ ua_object_type::ua_object_type(const ua_node_id& node_id, const qualified_name &
     visitable_ua_node(node_id, browse_name, display_name)
 {
 }
+
+ua_variable::ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
+    visitable_ua_node(node_id, browse_name, display_name)
+{
+}
+
+ua_object::ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
+    visitable_ua_node(node_id, browse_name, display_name)
+{
+}

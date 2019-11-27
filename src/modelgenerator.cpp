@@ -82,6 +82,22 @@ public:
         generate_base_attributes(node, object_node);
     }
 
+    void visit(ua_variable &node) override
+    {
+        auto variable_node = node_set.create_child("UAVariable");
+        generate_base_attributes(node, variable_node);
+
+        if (node.parent)
+        {
+            variable_node.set_attribute("ParentNodeId", node.parent->node_id.to_string());
+            variable_node.set_attribute("DataType", node.data_type);
+        }
+    }
+
+    void visit(ua_object &node) override
+    {
+    }
+
 private:
     void generate_base_attributes(ua_node &u_node, xml_node &x_node)
     {
@@ -98,7 +114,8 @@ private:
             {
                 auto reference_node = references_node.create_child("Reference");
                 reference_node.set_attribute("ReferenceType", reference.reference_type);
-                reference_node.set_attribute("IsForward", reference.is_forward ? "true" : "false");
+                if (!reference.is_forward)
+                    reference_node.set_attribute("IsForward", "false");
                 reference_node.set_data(reference.value);
             }
         }
@@ -174,11 +191,11 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     std::string symbolic_name = variable_type_node.attribute("SymbolicName");
     std::string base_type = variable_type_node.attribute("BaseType");
 
-    auto new_node = std::make_unique<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    auto new_node = std::make_shared<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
 
-    _ua_nodes.emplace_back(std::move(new_node));
+    _ua_nodes.emplace_back(new_node);
 }
 
 void model_generator::parse_object_type(xml_node &object_type_node)
@@ -186,11 +203,43 @@ void model_generator::parse_object_type(xml_node &object_type_node)
     std::string symbolic_name = object_type_node.attribute("SymbolicName");
     std::string base_type = object_type_node.attribute("BaseType");
 
-    auto new_node = std::make_unique<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    ua_node_ptr new_node = std::make_shared<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
+    _ua_nodes.emplace_back(new_node);
 
-    _ua_nodes.emplace_back(std::move(new_node));
+    for (auto child : object_type_node)
+    {
+        if (child.name() == "Children")
+        {
+            for (auto grand_child : child)
+            {
+                if (grand_child.name() != "Property")
+                    continue;
+
+                auto new_property = parse_property(grand_child, new_node);
+                new_node->references.emplace_back("HasProperty", true, new_property->node_id.to_string());
+            }
+        }
+    }
+}
+
+ua_node_ptr model_generator::parse_property(xml_node &property_node, ua_node_ptr &parent)
+{
+    std::string symbolic_name = property_node.attribute("SymbolicName");
+
+    auto new_node = std::make_shared<ua_variable>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    new_node->parent = parent;
+    new_node->data_type = property_node.attribute("DataType");
+    new_node->data_type = new_node->data_type.substr(3);
+
+    new_node->references.emplace_back("HasTypeDefinition", true, get_node("PropertyType")->node_id.to_string());
+    new_node->references.emplace_back("HasModellingRule", true, get_node("Mandatory")->node_id.to_string());
+    new_node->references.emplace_back("HasProperty", false, parent->node_id.to_string());
+
+    _ua_nodes.emplace_back(new_node);
+
+    return new_node;
 }
 
 void model_generator::generate_aliases(xml_node &aliases_node)
@@ -215,15 +264,14 @@ void model_generator::generate_nodes(xml_node &node_set)
 ua_node_ptr& model_generator::get_node(const std::string &browse_name)
 {
     std::string find_name = browse_name;
-    if (!starts_with(find_name, "ua:"))
+    if (starts_with(find_name, "ua:"))
     {
-        throw std::invalid_argument("Reference types without prefix 'ua:' not supported");
+        find_name = find_name.substr(3);
     }
-    find_name = find_name.substr(3);
 
     if (_ua_nodeset2.find(find_name) == _ua_nodeset2.end())
     {
-        throw std::invalid_argument("Unkown reference");
+        throw std::invalid_argument("Unknown reference");
     }
     return _ua_nodeset2[find_name];
 }
