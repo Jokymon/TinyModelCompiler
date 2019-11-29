@@ -6,6 +6,8 @@
 #include <variant>
 #include <vector>
 
+class xml_node;
+
 class ua_node_id
 {
 public:
@@ -116,6 +118,31 @@ public:
 
     ua_node_ptr parent;
     std::string data_type;
+};
+
+class ua_model
+{
+    using nodeset_type = std::vector<ua_node_ptr>;
+public:
+    using iterator = nodeset_type::iterator;
+
+    ua_model();
+
+    void populate_from_file(const std::string &filename);
+
+    void push_back(ua_node_ptr node);
+
+    iterator begin();
+    iterator end();
+
+private:
+    void parse_variable_type(xml_node &variable_type_node);
+    void parse_object_type(xml_node &object_type_node);
+    void parse_variable(xml_node &variable_node);
+    void parse_object(xml_node &object_node);
+
+private:
+    nodeset_type _nodeset;
 };
 
 #endif

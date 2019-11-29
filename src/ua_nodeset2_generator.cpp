@@ -72,32 +72,13 @@ private:
 };
 
 ua_nodeset2_generator::ua_nodeset2_generator() :
-    _ua_nodes()
+    _nodeset2()
 {
 }
 
 void ua_nodeset2_generator::load_nodeset(const std::string &nodeset_file)
 {
-    xml_document doc= xml_document::parse_file(nodeset_file);
-
-    auto root = doc.root();
-    if (!root)
-    {
-        std::cerr << "Empty document\n";
-        return;
-    }
-
-    for (auto child : root)
-    {
-        if (child.name() == "UAVariableType")
-            parse_variable_type(child);
-        else if (child.name() == "UAObjectType")
-            parse_object_type(child);
-        else if (child.name() == "UAVariable")
-            parse_variable(child);
-        else if (child.name() == "UAObject")
-            parse_object(child);
-    }
+    _nodeset2.populate_from_file(nodeset_file);
 }
 
 void ua_nodeset2_generator::write_nodeset2_sources()
@@ -125,7 +106,7 @@ void ua_nodeset2_generator::write_nodeset2_sources()
     cpp_source << "{\n";
 
     node_code_generator generator(cpp_source);
-    for (const auto &ua_node : _ua_nodes)
+    for (const auto &ua_node : _nodeset2)
     {
         generator.visit(*ua_node.get());
     }
@@ -133,79 +114,3 @@ void ua_nodeset2_generator::write_nodeset2_sources()
     cpp_source << "}\n";
 }
 
-void ua_nodeset2_generator::parse_variable_type(xml_node &variable_type_node)
-{
-    std::string node_id_str = variable_type_node.attribute("NodeId");
-    auto node_id = ua_node_id::from_string(node_id_str);
-    qualified_name browse_name{0, variable_type_node.attribute("BrowseName")};
-    int value_rank = -1;
-    if (variable_type_node.has_attribute("ValueRank"))
-    {
-        std::string rank = variable_type_node.attribute("ValueRank");
-        // TODO: convert to int
-    }
-    bool is_abstract = false;
-    if (variable_type_node.has_attribute("IsAbstract"))
-    {
-        std::string abstract = variable_type_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
-    }
-    std::string display_name;
-
-    _ua_nodes.emplace_back(std::make_shared<ua_variable_type>(node_id, browse_name, display_name));
-}
-
-void ua_nodeset2_generator::parse_object_type(xml_node &object_type_node)
-{
-    std::string node_id_str = object_type_node.attribute("NodeId");
-    auto node_id = ua_node_id::from_string(node_id_str);
-    qualified_name browse_name{0, object_type_node.attribute("BrowseName")};
-
-    bool is_abstract = false;
-    if (object_type_node.has_attribute("IsAbstract"))
-    {
-        std::string abstract = object_type_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
-    }
-    std::string display_name;
-
-    _ua_nodes.emplace_back(std::make_shared<ua_object_type>(node_id, browse_name, display_name));
-}
-
-void ua_nodeset2_generator::parse_variable(xml_node &variable_node)
-{
-    std::string node_id_str = variable_node.attribute("NodeId");
-    auto node_id = ua_node_id::from_string(node_id_str);
-    qualified_name browse_name{0, variable_node.attribute("BrowseName")};
-
-    bool is_abstract = false;
-    if (variable_node.has_attribute("IsAbstract"))
-    {
-        std::string abstract = variable_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
-    }
-    std::string display_name;
-
-    _ua_nodes.emplace_back(std::make_shared<ua_variable>(node_id, browse_name, display_name));
-}
-
-void ua_nodeset2_generator::parse_object(xml_node &object_node)
-{
-    std::string node_id_str = object_node.attribute("NodeId");
-    auto node_id = ua_node_id::from_string(node_id_str);
-    qualified_name browse_name{0, object_node.attribute("BrowseName")};
-
-    bool is_abstract = false;
-    if (object_node.has_attribute("IsAbstract"))
-    {
-        std::string abstract = object_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
-    }
-    std::string display_name;
-
-    _ua_nodes.emplace_back(std::make_shared<ua_object>(node_id, browse_name, display_name));
-}

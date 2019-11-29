@@ -195,7 +195,7 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
 
-    _ua_nodes.emplace_back(new_node);
+    _ua_nodes.push_back(new_node);
 }
 
 void model_generator::parse_object_type(xml_node &object_type_node)
@@ -206,7 +206,7 @@ void model_generator::parse_object_type(xml_node &object_type_node)
     ua_node_ptr new_node = std::make_shared<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
-    _ua_nodes.emplace_back(new_node);
+    _ua_nodes.push_back(new_node);
 
     for (auto child : object_type_node)
     {
@@ -237,7 +237,7 @@ ua_node_ptr model_generator::parse_property(xml_node &property_node, ua_node_ptr
     new_node->references.emplace_back("HasModellingRule", true, get_node("Mandatory")->node_id.to_string());
     new_node->references.emplace_back("HasProperty", false, parent->node_id.to_string());
 
-    _ua_nodes.emplace_back(new_node);
+    _ua_nodes.push_back(new_node);
 
     return new_node;
 }

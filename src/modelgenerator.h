@@ -30,7 +30,7 @@ private:
 
 private:
     std::vector<std::string> _namespaces;
-    std::vector<ua_node_ptr> _ua_nodes;
+    ua_model _ua_nodes;
     std::map<std::string, ua_node_ptr> _ua_nodeset2;
 
     const int NamespaceIndex = 1;

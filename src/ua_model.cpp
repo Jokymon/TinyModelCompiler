@@ -1,4 +1,5 @@
 #include "ua_model.h"
+#include "xmlpp.h"
 #include <exception>
 #include <iostream>
 
@@ -200,4 +201,128 @@ ua_variable::ua_variable(const ua_node_id& node_id, const qualified_name &browse
 ua_object::ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
     visitable_ua_node(node_id, browse_name, display_name)
 {
+}
+
+// -------- UA node model -----------------------
+
+
+
+ua_model::ua_model()
+{
+}
+
+void ua_model::populate_from_file(const std::string &filename)
+{
+    xml_document doc = xml_document::parse_file(filename);
+
+    auto root = doc.root();
+    if (!root)
+    {
+        std::cerr << "Empty document\n";
+        return;
+    }
+
+    for (auto child : root)
+    {
+        if (child.name() == "UAVariableType")
+            parse_variable_type(child);
+        else if (child.name() == "UAObjectType")
+            parse_object_type(child);
+        else if (child.name() == "UAVariable")
+            parse_variable(child);
+        else if (child.name() == "UAObject")
+            parse_object(child);
+    }
+}
+
+void ua_model::push_back(ua_node_ptr node)
+{
+    _nodeset.push_back(node);
+}
+
+ua_model::iterator ua_model::begin()
+{
+    return _nodeset.begin();
+}
+
+ua_model::iterator ua_model::end()
+{
+    return _nodeset.end();
+}
+
+void ua_model::parse_variable_type(xml_node &variable_type_node)
+{
+    std::string node_id_str = variable_type_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
+    qualified_name browse_name{0, variable_type_node.attribute("BrowseName")};
+    int value_rank = -1;
+    if (variable_type_node.has_attribute("ValueRank"))
+    {
+        std::string rank = variable_type_node.attribute("ValueRank");
+        // TODO: convert to int
+    }
+    bool is_abstract = false;
+    if (variable_type_node.has_attribute("IsAbstract"))
+    {
+        std::string abstract = variable_type_node.attribute("IsAbstract");
+        if (abstract=="true")
+            is_abstract = true;
+    }
+    std::string display_name;
+
+    _nodeset.emplace_back(std::make_shared<ua_variable_type>(node_id, browse_name, display_name));
+}
+
+void ua_model::parse_object_type(xml_node &object_type_node)
+{
+    std::string node_id_str = object_type_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
+    qualified_name browse_name{0, object_type_node.attribute("BrowseName")};
+
+    bool is_abstract = false;
+    if (object_type_node.has_attribute("IsAbstract"))
+    {
+        std::string abstract = object_type_node.attribute("IsAbstract");
+        if (abstract=="true")
+            is_abstract = true;
+    }
+    std::string display_name;
+
+    _nodeset.emplace_back(std::make_shared<ua_object_type>(node_id, browse_name, display_name));
+}
+
+void ua_model::parse_variable(xml_node &variable_node)
+{
+    std::string node_id_str = variable_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
+    qualified_name browse_name{0, variable_node.attribute("BrowseName")};
+
+    bool is_abstract = false;
+    if (variable_node.has_attribute("IsAbstract"))
+    {
+        std::string abstract = variable_node.attribute("IsAbstract");
+        if (abstract=="true")
+            is_abstract = true;
+    }
+    std::string display_name;
+
+    _nodeset.emplace_back(std::make_shared<ua_variable>(node_id, browse_name, display_name));
+}
+
+void ua_model::parse_object(xml_node &object_node)
+{
+    std::string node_id_str = object_node.attribute("NodeId");
+    auto node_id = ua_node_id::from_string(node_id_str);
+    qualified_name browse_name{0, object_node.attribute("BrowseName")};
+
+    bool is_abstract = false;
+    if (object_node.has_attribute("IsAbstract"))
+    {
+        std::string abstract = object_node.attribute("IsAbstract");
+        if (abstract=="true")
+            is_abstract = true;
+    }
+    std::string display_name;
+
+    _nodeset.emplace_back(std::make_shared<ua_object>(node_id, browse_name, display_name));
 }
