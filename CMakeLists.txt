@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(extern_INSTALL_DIR "${CMAKE_BINARY_DIR}/local")
 include(xml2)
+include(fifo_map)
 
 add_library(libxml2_wrapper)
 
@@ -51,6 +52,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
+        fifo_map
         libxml2_wrapper
 )
 
@@ -73,6 +75,7 @@ target_include_directories(generate_ua_nodeset2
 
 target_link_libraries(generate_ua_nodeset2
     PUBLIC
+        fifo_map
         libxml2_wrapper
 )
 

@@ -6,6 +6,12 @@
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
+ua_node_id::ua_node_id() :
+    namespace_id(0),
+    id()
+{
+}
+
 ua_node_id::ua_node_id(int namespace_id, const std::string &name) :
     namespace_id(namespace_id),
     id(name)
@@ -205,7 +211,74 @@ ua_object::ua_object(const ua_node_id& node_id, const qualified_name &browse_nam
 
 // -------- UA node model -----------------------
 
+class node_set_generator : public ua_node_visitor
+{
+public:
+    explicit node_set_generator(xml_node &node_set) :
+        node_set(node_set)
+    {}
 
+    void visit(ua_node &node) override
+    {
+        node.visit(*this);
+    }
+
+    void visit(ua_variable_type &node) override
+    {
+        auto variable_node = node_set.create_child("UAVariableType");
+        generate_base_attributes(node, variable_node);
+
+        variable_node.set_attribute("ValueRank", "-2");
+    }
+
+    void visit(ua_object_type &node) override
+    {
+        auto object_node = node_set.create_child("UAObjectType");
+        generate_base_attributes(node, object_node);
+    }
+
+    void visit(ua_variable &node) override
+    {
+        auto variable_node = node_set.create_child("UAVariable");
+        generate_base_attributes(node, variable_node);
+
+        if (node.parent)
+        {
+            variable_node.set_attribute("ParentNodeId", node.parent->node_id.to_string());
+            variable_node.set_attribute("DataType", node.data_type);
+        }
+    }
+
+    void visit(ua_object &node) override
+    {
+    }
+
+private:
+    void generate_base_attributes(ua_node &u_node, xml_node &x_node)
+    {
+        x_node.set_attribute("NodeId", u_node.node_id.to_string());
+        x_node.set_attribute("BrowseName", u_node.browse_name.to_string());
+
+        auto display_name = x_node.create_child("DisplayName");
+        display_name.set_data(u_node.display_name);
+
+        if (u_node.references.size()>0)
+        {
+            auto references_node = x_node.create_child("References");
+            for (auto &reference : u_node.references)
+            {
+                auto reference_node = references_node.create_child("Reference");
+                reference_node.set_attribute("ReferenceType", reference.reference_type);
+                if (!reference.is_forward)
+                    reference_node.set_attribute("IsForward", "false");
+                reference_node.set_data(reference.value);
+            }
+        }
+    }
+
+private:
+    xml_node &node_set;
+};
 
 ua_model::ua_model()
 {
@@ -224,7 +297,15 @@ void ua_model::populate_from_file(const std::string &filename)
 
     for (auto child : root)
     {
-        if (child.name() == "UAVariableType")
+        if (child.name() == "Aliases")
+        {
+            for (auto grand_child : child)
+            {
+                if (grand_child.name() == "Alias")
+                    parse_alias(grand_child);
+            }
+        }
+        else if (child.name() == "UAVariableType")
             parse_variable_type(child);
         else if (child.name() == "UAObjectType")
             parse_object_type(child);
@@ -235,9 +316,32 @@ void ua_model::populate_from_file(const std::string &filename)
     }
 }
 
+void ua_model::dump_to_file(const std::string &filename)
+{
+   xml_document doc = xml_document::create("http://opcfoundation.org/UA/2011/03/UANodeSet.xsd",
+                                            "UaNodeSet");
+    auto root = doc.root();
+
+    generate_namespaces(root);
+    generate_aliases(root);
+    generate_nodes(root);
+
+    doc.dump_file(filename);
+}
+
 void ua_model::push_back(ua_node_ptr node)
 {
     _nodeset.push_back(node);
+}
+
+void ua_model::append_namespace(const std::string &namespace_uri)
+{
+    _namespaces.push_back(namespace_uri);
+}
+
+void ua_model::add_alias(const std::string &alias, const ua_node_id &node_id)
+{
+    _aliases[alias] = node_id;
 }
 
 ua_model::iterator ua_model::begin()
@@ -248,6 +352,13 @@ ua_model::iterator ua_model::begin()
 ua_model::iterator ua_model::end()
 {
     return _nodeset.end();
+}
+
+void ua_model::parse_alias(xml_node &alias_node)
+{
+    std::string alias = alias_node.attribute("Alias");
+    ua_node_id node_id = ua_node_id::from_string(alias_node.data());
+    add_alias(alias, node_id);
 }
 
 void ua_model::parse_variable_type(xml_node &variable_type_node)
@@ -325,4 +436,37 @@ void ua_model::parse_object(xml_node &object_node)
     std::string display_name;
 
     _nodeset.emplace_back(std::make_shared<ua_object>(node_id, browse_name, display_name));
+}
+
+void ua_model::generate_namespaces(xml_node &root)
+{
+    auto ns_uris = root.create_child("NamespaceUris");
+    for (const auto &url : _namespaces)
+    {
+        auto ns_uri = ns_uris.create_child("Uri");
+        ns_uri.set_data(url);
+    }
+}
+
+void ua_model::generate_aliases(xml_node &root)
+{
+    if (!_aliases.empty())
+    {
+        auto aliases_node = root.create_child("Aliases");
+        for (auto alias : _aliases)
+        {
+            auto alias_node = aliases_node.create_child("Alias");
+            alias_node.set_data(alias.second.to_string());
+            alias_node.set_attribute("Alias", alias.first);
+        }
+    }
+}
+
+void ua_model::generate_nodes(xml_node &root)
+{
+    node_set_generator generator(root);
+    for (const auto &ua_node : _nodeset)
+    {
+        generator.visit(*ua_node.get());
+    }
 }

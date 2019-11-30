@@ -1,6 +1,7 @@
 #ifndef UA_MODEL_H
 #define UA_MODEL_H
 
+#include "fifo_map.hpp"
 #include <memory>
 #include <string>
 #include <variant>
@@ -11,6 +12,7 @@ class xml_node;
 class ua_node_id
 {
 public:
+    ua_node_id();
     ua_node_id(int namespace_id, const std::string &name);
     ua_node_id(int namespace_id, int node_id);
 
@@ -129,19 +131,29 @@ public:
     ua_model();
 
     void populate_from_file(const std::string &filename);
+    void dump_to_file(const std::string &filename);
 
     void push_back(ua_node_ptr node);
+    void append_namespace(const std::string &namespace_uri);
+    void add_alias(const std::string &alias, const ua_node_id &node_id);
 
     iterator begin();
     iterator end();
 
 private:
+    void parse_alias(xml_node &alias_node);
     void parse_variable_type(xml_node &variable_type_node);
     void parse_object_type(xml_node &object_type_node);
     void parse_variable(xml_node &variable_node);
     void parse_object(xml_node &object_node);
 
+    void generate_namespaces(xml_node &root);
+    void generate_aliases(xml_node &root);
+    void generate_nodes(xml_node &root);
+
 private:
+    std::vector<std::string> _namespaces;
+    nlohmann::fifo_map<std::string, ua_node_id> _aliases;
     nodeset_type _nodeset;
 };
 

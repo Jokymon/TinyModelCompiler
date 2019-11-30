@@ -23,13 +23,9 @@ private:
     void parse_object_type(xml_node &object_type_node);
     ua_node_ptr parse_property(xml_node &property_node, ua_node_ptr &parent);
 
-    void generate_aliases(xml_node &aliases_node);
-    void generate_nodes(xml_node &node_set);
-
     ua_node_ptr& get_node(const std::string &browse_name);
 
 private:
-    std::vector<std::string> _namespaces;
     ua_model _ua_nodes;
     std::map<std::string, ua_node_ptr> _ua_nodeset2;
 
