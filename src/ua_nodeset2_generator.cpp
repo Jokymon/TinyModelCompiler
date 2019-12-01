@@ -17,34 +17,12 @@ public:
 
     void visit(ua_variable_type &node) override
     {
-        std::string address_part_str;
-        auto address_part = node.node_id.id;
-        if (std::holds_alternative<int>(address_part))
-            address_part_str = std::to_string(std::get<int>(address_part));
-        else if (std::holds_alternative<std::string>(address_part))
-            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
-        
-        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
-                << std::string("std::make_shared<ua_variable_type>(ua_node_id(")
-                << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
-                << node.browse_name.to_string() << std::string("\"), \"")
-                << node.symbolic_name << std::string("\");\n");
+        generate_code(node, "ua_variable_type");
     }
 
     void visit(ua_object_type &node) override
     {
-        std::string address_part_str;
-        auto address_part = node.node_id.id;
-        if (std::holds_alternative<int>(address_part))
-            address_part_str = std::to_string(std::get<int>(address_part));
-        else if (std::holds_alternative<std::string>(address_part))
-            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
-        
-        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
-                << std::string("std::make_shared<ua_object_type>(ua_node_id(")
-                << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
-                << node.browse_name.to_string() << std::string("\"), \"")
-                << node.symbolic_name << std::string("\");\n");
+        generate_code(node, "ua_object_type");
     }
 
     void visit(ua_variable &node) override
@@ -53,18 +31,7 @@ public:
 
     void visit(ua_object &node) override
     {
-        std::string address_part_str;
-        auto address_part = node.node_id.id;
-        if (std::holds_alternative<int>(address_part))
-            address_part_str = std::to_string(std::get<int>(address_part));
-        else if (std::holds_alternative<std::string>(address_part))
-            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
-        
-        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
-                << std::string("std::make_shared<ua_object>(ua_node_id(")
-                << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
-                << node.browse_name.to_string() << std::string("\"), \"")
-                << node.symbolic_name << std::string("\");\n");
+        generate_code(node, "ua_object");
     }
 
 private:
@@ -73,6 +40,25 @@ private:
         if (!node.symbolic_name.empty())
             return node.symbolic_name;
         return node.browse_name.to_string();
+    }
+
+    void generate_code(ua_node &node, const std::string &node_type)
+    {
+        std::string address_part_str;
+        auto address_part = node.node_id.id;
+        if (std::holds_alternative<int>(address_part))
+            address_part_str = std::to_string(std::get<int>(address_part));
+        else if (std::holds_alternative<std::string>(address_part))
+            address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
+        
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
+                << std::string("std::make_shared<") << node_type << std::string(">();\n");
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"]->node_id = ")
+                << std::string("ua_node_id(") << node.node_id.namespace_id << ", " << address_part_str << ");\n";
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"]->browse_name = ")
+                << std::string("qualified_name(\"") << node.browse_name.to_string() << std::string("\");\n");
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"]->symbolic_name = ")
+                << std::string("\"") << node.symbolic_name << std::string("\";\n");
     }
 
 private:

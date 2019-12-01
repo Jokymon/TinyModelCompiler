@@ -26,6 +26,7 @@ public:
 class qualified_name
 {
 public:
+    qualified_name();
     explicit qualified_name(const std::string &name);
     explicit qualified_name(int namespace_index, const std::string &name);
 
@@ -64,8 +65,6 @@ public:
 class ua_node
 {
 public:
-    ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
-
     ua_node_id node_id;
     qualified_name browse_name;
     std::string symbolic_name;
@@ -77,49 +76,52 @@ public:
 
 typedef std::shared_ptr<ua_node> ua_node_ptr;
 
-template<class T>
-class visitable_ua_node : public ua_node
+class ua_type : public ua_node
 {
 public:
-    visitable_ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
-        ua_node(node_id, browse_name, symbolic_name)
+    bool is_abstract;
+};
+
+class ua_variable_type : public ua_type
+{
+public:
+    void visit(ua_node_visitor& visitor) override
     {
+        visitor.visit(*this);
     }
+};
+
+class ua_object_type : public ua_type
+{
+public:
+    void visit(ua_node_visitor& visitor) override
+    {
+        visitor.visit(*this);
+    }
+};
+
+class ua_variable : public ua_node
+{
+public:
+    ua_node_ptr parent;
+    std::string data_type;
 
     void visit(ua_node_visitor& visitor) override
     {
-        visitor.visit(static_cast<T&>(*this));
+        visitor.visit(*this);
     }
 };
 
-class ua_variable_type : public visitable_ua_node<ua_variable_type>
+class ua_object : public ua_node
 {
 public:
-    ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
-};
-
-class ua_object_type : public visitable_ua_node<ua_object_type>
-{
-public:
-    ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
-};
-
-class ua_variable : public visitable_ua_node<ua_variable>
-{
-public:
-    ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
-
     ua_node_ptr parent;
     std::string data_type;
-};
 
-class ua_object : public visitable_ua_node<ua_object>
-{
-public:
-    ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
-
-    ua_node_ptr parent;
-    std::string data_type;
+    void visit(ua_node_visitor& visitor) override
+    {
+        visitor.visit(*this);
+    }
 };
 
 class ua_model
@@ -146,6 +148,9 @@ private:
     void parse_object_type(xml_node &object_type_node);
     void parse_variable(xml_node &variable_node);
     void parse_object(xml_node &object_node);
+
+    void load_ua_node(xml_node &x_node, ua_node &u_node);
+    void load_ua_type(xml_node &x_node, ua_type &u_node);
 
     void generate_namespaces(xml_node &root);
     void generate_aliases(xml_node &root);
