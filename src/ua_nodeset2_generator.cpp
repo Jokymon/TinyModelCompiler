@@ -24,11 +24,11 @@ public:
         else if (std::holds_alternative<std::string>(address_part))
             address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
         
-        out << std::string("    nodes[\"") << node.browse_name.to_string() << std::string("\"] = ")
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
                 << std::string("std::make_shared<ua_variable_type>(ua_node_id(")
                 << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
                 << node.browse_name.to_string() << std::string("\"), \"")
-                << node.browse_name.to_string() << std::string("\");\n");
+                << node.symbolic_name << std::string("\");\n");
     }
 
     void visit(ua_object_type &node) override
@@ -40,11 +40,11 @@ public:
         else if (std::holds_alternative<std::string>(address_part))
             address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
         
-        out << std::string("    nodes[\"") << node.browse_name.to_string() << std::string("\"] = ")
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
                 << std::string("std::make_shared<ua_object_type>(ua_node_id(")
                 << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
                 << node.browse_name.to_string() << std::string("\"), \"")
-                << node.browse_name.to_string() << std::string("\");\n");
+                << node.symbolic_name << std::string("\");\n");
     }
 
     void visit(ua_variable &node) override
@@ -60,11 +60,19 @@ public:
         else if (std::holds_alternative<std::string>(address_part))
             address_part_str = std::string("\"") + std::get<std::string>(address_part) + std::string("\"");
         
-        out << std::string("    nodes[\"") << node.browse_name.to_string() << std::string("\"] = ")
+        out << std::string("    nodes[\"") << key_name(node) << std::string("\"] = ")
                 << std::string("std::make_shared<ua_object>(ua_node_id(")
                 << node.node_id.namespace_id << ", " << address_part_str << "), qualified_name(\""
                 << node.browse_name.to_string() << std::string("\"), \"")
-                << node.browse_name.to_string() << std::string("\");\n");
+                << node.symbolic_name << std::string("\");\n");
+    }
+
+private:
+    std::string key_name(const ua_node &node)
+    {
+        if (!node.symbolic_name.empty())
+            return node.symbolic_name;
+        return node.browse_name.to_string();
     }
 
 private:

@@ -87,6 +87,8 @@ void model_generator::load_model(const std::string &model_file)
             parse_variable_type(child);
         else if (child.name() == "ObjectType")
             parse_object_type(child);
+        else if (child.name() == "Object")
+            parse_object(child);
     }
 }
 
@@ -112,7 +114,7 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     std::string symbolic_name = variable_type_node.attribute("SymbolicName");
     std::string base_type = variable_type_node.attribute("BaseType");
 
-    auto new_node = std::make_shared<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    auto new_node = std::make_shared<ua_variable_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), "");
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
 
@@ -124,7 +126,7 @@ void model_generator::parse_object_type(xml_node &object_type_node)
     std::string symbolic_name = object_type_node.attribute("SymbolicName");
     std::string base_type = object_type_node.attribute("BaseType");
 
-    ua_node_ptr new_node = std::make_shared<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    ua_node_ptr new_node = std::make_shared<ua_object_type>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), "");
     auto &reference_node = get_node(base_type);
     new_node->references.emplace_back("HasSubtype", false, reference_node->node_id.to_string());
     _ua_nodes.push_back(new_node);
@@ -149,18 +151,70 @@ ua_node_ptr model_generator::parse_property(xml_node &property_node, ua_node_ptr
 {
     std::string symbolic_name = property_node.attribute("SymbolicName");
 
-    auto new_node = std::make_shared<ua_variable>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), symbolic_name);
+    auto new_node = std::make_shared<ua_variable>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), "");
     new_node->parent = parent;
     new_node->data_type = property_node.attribute("DataType");
     new_node->data_type = new_node->data_type.substr(3);
 
     new_node->references.emplace_back("HasTypeDefinition", true, get_node("PropertyType")->node_id.to_string());
-    new_node->references.emplace_back("HasModellingRule", true, get_node("Mandatory")->node_id.to_string());
+    new_node->references.emplace_back("HasModellingRule", true, get_node("ModellingRule_Mandatory")->node_id.to_string());
     new_node->references.emplace_back("HasProperty", false, parent->node_id.to_string());
 
     _ua_nodes.push_back(new_node);
 
     return new_node;
+}
+
+void model_generator::parse_object(xml_node &object_node)
+{
+    std::string symbolic_name = object_node.attribute("SymbolicName");
+    std::string type_definition = object_node.attribute("TypeDefinition");
+
+    auto new_node = std::make_shared<ua_object>(ua_node_id(NamespaceIndex, 1000), qualified_name(NamespaceIndex, symbolic_name), "");
+
+    for (auto child : object_node)
+    {
+        if (child.name() == "References")
+        {
+            for (auto grand_child : child)
+            {
+                if (grand_child.name() != "Reference")
+                    continue;
+
+                bool is_inverse = false;
+                if (grand_child.has_attribute("IsInverse"))
+                    if (grand_child.attribute("IsInverse")=="true")
+                        is_inverse = true;
+
+                std::string reference_type = "";
+                std::string target_id = "";
+
+                for (auto reference_property : grand_child)
+                {
+                    if (reference_property.name() == "ReferenceType")
+                    {
+                        reference_type = reference_property.data();
+                        if (starts_with(reference_type, "ua:"))
+                            reference_type = reference_type.substr(3);
+                    }
+                    else if (reference_property.name() == "TargetId")
+                    {
+                        target_id = reference_property.data();
+                        if (starts_with(target_id, "ua:"))
+                            target_id = target_id.substr(3);
+                    }
+                }
+
+                auto &reference_node = get_node(target_id);
+                new_node->references.emplace_back(reference_type, !is_inverse, reference_node->node_id.to_string());
+            }
+        }
+    }
+
+    auto &reference_node = get_node(type_definition);
+    new_node->references.emplace_back("HasTypeDefinition", true, reference_node->node_id.to_string());
+
+    _ua_nodes.push_back(new_node);
 }
 
 ua_node_ptr& model_generator::get_node(const std::string &browse_name)
@@ -173,7 +227,7 @@ ua_node_ptr& model_generator::get_node(const std::string &browse_name)
 
     if (_ua_nodeset2.find(find_name) == _ua_nodeset2.end())
     {
-        throw std::invalid_argument("Unknown reference");
+        throw std::invalid_argument("Unknown reference: "+browse_name);
     }
     return _ua_nodeset2[find_name];
 }

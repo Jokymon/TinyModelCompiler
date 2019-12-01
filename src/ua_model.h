@@ -64,11 +64,11 @@ public:
 class ua_node
 {
 public:
-    ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+    ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
 
     ua_node_id node_id;
     qualified_name browse_name;
-    std::string display_name;
+    std::string symbolic_name;
 
     std::vector<reference> references;
 
@@ -81,8 +81,8 @@ template<class T>
 class visitable_ua_node : public ua_node
 {
 public:
-    visitable_ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
-        ua_node(node_id, browse_name, display_name)
+    visitable_ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
+        ua_node(node_id, browse_name, symbolic_name)
     {
     }
 
@@ -95,19 +95,19 @@ public:
 class ua_variable_type : public visitable_ua_node<ua_variable_type>
 {
 public:
-    ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+    ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
 };
 
 class ua_object_type : public visitable_ua_node<ua_object_type>
 {
 public:
-    ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+    ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
 };
 
 class ua_variable : public visitable_ua_node<ua_variable>
 {
 public:
-    ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+    ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
 
     ua_node_ptr parent;
     std::string data_type;
@@ -116,7 +116,7 @@ public:
 class ua_object : public visitable_ua_node<ua_object>
 {
 public:
-    ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name);
+    ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name);
 
     ua_node_ptr parent;
     std::string data_type;

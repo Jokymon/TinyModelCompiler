@@ -22,6 +22,7 @@ private:
     void parse_variable_type(xml_node &variable_type_node);
     void parse_object_type(xml_node &object_type_node);
     ua_node_ptr parse_property(xml_node &property_node, ua_node_ptr &parent);
+    void parse_object(xml_node &object_node);
 
     ua_node_ptr& get_node(const std::string &browse_name);
 

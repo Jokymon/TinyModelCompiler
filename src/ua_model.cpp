@@ -182,30 +182,30 @@ reference::reference(const std::string &reference_type, bool is_forward, const s
 {
 }
 
-ua_node::ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
+ua_node::ua_node(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
     node_id(node_id),
     browse_name(browse_name),
-    display_name(display_name)
+    symbolic_name(symbolic_name)
 {
 }
 
-ua_variable_type::ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
-    visitable_ua_node(node_id, browse_name, display_name)
+ua_variable_type::ua_variable_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
+    visitable_ua_node(node_id, browse_name, symbolic_name)
 {
 }
 
-ua_object_type::ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
-    visitable_ua_node(node_id, browse_name, display_name)
+ua_object_type::ua_object_type(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
+    visitable_ua_node(node_id, browse_name, symbolic_name)
 {
 }
 
-ua_variable::ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
-    visitable_ua_node(node_id, browse_name, display_name)
+ua_variable::ua_variable(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
+    visitable_ua_node(node_id, browse_name, symbolic_name)
 {
 }
 
-ua_object::ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &display_name) :
-    visitable_ua_node(node_id, browse_name, display_name)
+ua_object::ua_object(const ua_node_id& node_id, const qualified_name &browse_name, const std::string &symbolic_name) :
+    visitable_ua_node(node_id, browse_name, symbolic_name)
 {
 }
 
@@ -251,6 +251,8 @@ public:
 
     void visit(ua_object &node) override
     {
+        auto object_node = node_set.create_child("UAObject");
+        generate_base_attributes(node, object_node);
     }
 
 private:
@@ -258,9 +260,11 @@ private:
     {
         x_node.set_attribute("NodeId", u_node.node_id.to_string());
         x_node.set_attribute("BrowseName", u_node.browse_name.to_string());
+        if (!u_node.symbolic_name.empty())
+            x_node.set_attribute("SymbolicName", u_node.symbolic_name);
 
         auto display_name = x_node.create_child("DisplayName");
-        display_name.set_data(u_node.display_name);
+        display_name.set_data(u_node.browse_name.name);
 
         if (u_node.references.size()>0)
         {
@@ -366,6 +370,8 @@ void ua_model::parse_variable_type(xml_node &variable_type_node)
     std::string node_id_str = variable_type_node.attribute("NodeId");
     auto node_id = ua_node_id::from_string(node_id_str);
     qualified_name browse_name{0, variable_type_node.attribute("BrowseName")};
+    std::string symbolic_name = variable_type_node.attribute("SymbolicName");
+
     int value_rank = -1;
     if (variable_type_node.has_attribute("ValueRank"))
     {
@@ -379,9 +385,8 @@ void ua_model::parse_variable_type(xml_node &variable_type_node)
         if (abstract=="true")
             is_abstract = true;
     }
-    std::string display_name;
 
-    _nodeset.emplace_back(std::make_shared<ua_variable_type>(node_id, browse_name, display_name));
+    _nodeset.emplace_back(std::make_shared<ua_variable_type>(node_id, browse_name, symbolic_name));
 }
 
 void ua_model::parse_object_type(xml_node &object_type_node)
@@ -389,6 +394,7 @@ void ua_model::parse_object_type(xml_node &object_type_node)
     std::string node_id_str = object_type_node.attribute("NodeId");
     auto node_id = ua_node_id::from_string(node_id_str);
     qualified_name browse_name{0, object_type_node.attribute("BrowseName")};
+    std::string symbolic_name = object_type_node.attribute("SymbolicName");
 
     bool is_abstract = false;
     if (object_type_node.has_attribute("IsAbstract"))
@@ -397,9 +403,8 @@ void ua_model::parse_object_type(xml_node &object_type_node)
         if (abstract=="true")
             is_abstract = true;
     }
-    std::string display_name;
 
-    _nodeset.emplace_back(std::make_shared<ua_object_type>(node_id, browse_name, display_name));
+    _nodeset.emplace_back(std::make_shared<ua_object_type>(node_id, browse_name, symbolic_name));
 }
 
 void ua_model::parse_variable(xml_node &variable_node)
@@ -407,6 +412,7 @@ void ua_model::parse_variable(xml_node &variable_node)
     std::string node_id_str = variable_node.attribute("NodeId");
     auto node_id = ua_node_id::from_string(node_id_str);
     qualified_name browse_name{0, variable_node.attribute("BrowseName")};
+    std::string symbolic_name = variable_node.attribute("SymbolicName");
 
     bool is_abstract = false;
     if (variable_node.has_attribute("IsAbstract"))
@@ -415,9 +421,8 @@ void ua_model::parse_variable(xml_node &variable_node)
         if (abstract=="true")
             is_abstract = true;
     }
-    std::string display_name;
 
-    _nodeset.emplace_back(std::make_shared<ua_variable>(node_id, browse_name, display_name));
+    _nodeset.emplace_back(std::make_shared<ua_variable>(node_id, browse_name, symbolic_name));
 }
 
 void ua_model::parse_object(xml_node &object_node)
@@ -425,6 +430,7 @@ void ua_model::parse_object(xml_node &object_node)
     std::string node_id_str = object_node.attribute("NodeId");
     auto node_id = ua_node_id::from_string(node_id_str);
     qualified_name browse_name{0, object_node.attribute("BrowseName")};
+    std::string symbolic_name = object_node.attribute("SymbolicName");
 
     bool is_abstract = false;
     if (object_node.has_attribute("IsAbstract"))
@@ -433,9 +439,8 @@ void ua_model::parse_object(xml_node &object_node)
         if (abstract=="true")
             is_abstract = true;
     }
-    std::string display_name;
 
-    _nodeset.emplace_back(std::make_shared<ua_object>(node_id, browse_name, display_name));
+    _nodeset.emplace_back(std::make_shared<ua_object>(node_id, browse_name, symbolic_name));
 }
 
 void ua_model::generate_namespaces(xml_node &root)
