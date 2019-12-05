@@ -102,10 +102,15 @@ public:
     }
 };
 
-class ua_variable : public ua_node
+class ua_instance : public ua_node
 {
 public:
     ua_node_ptr parent;
+};
+
+class ua_variable : public ua_instance
+{
+public:
     std::string data_type;
 
     void visit(ua_node_visitor& visitor) override
@@ -114,10 +119,9 @@ public:
     }
 };
 
-class ua_object : public ua_node
+class ua_object : public ua_instance
 {
 public:
-    ua_node_ptr parent;
     std::string data_type;
 
     void visit(ua_node_visitor& visitor) override
