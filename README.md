@@ -15,8 +15,10 @@ FIFO map.
 
 In a build directory simply do
 
-  cmake -G<Your prefered generator> <path to TinyModelCompiler>
-  cmake --build .
+```
+cmake -G<Your prefered generator> <path to TinyModelCompiler>
+cmake --build .
+```
 
 Usage
 -----
