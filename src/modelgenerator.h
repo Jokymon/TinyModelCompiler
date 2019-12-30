@@ -15,7 +15,7 @@ public:
 
     void load_model(const std::string &model_file);
 
-    void write_nodeset2();
+    void write_nodeset2(const std::string &output_file);
 
 private:
     void parse_namespaces(xml_node &namespaces_node);

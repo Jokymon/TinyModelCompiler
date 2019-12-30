@@ -98,10 +98,10 @@ void model_generator::load_model(const std::string &model_file)
     }
 }
 
-void model_generator::write_nodeset2()
+void model_generator::write_nodeset2(const std::string &output_file)
 {
     resolve_references();
-    _ua_nodes.dump_to_file("MemoryBuffer.NodeSet2.xml");
+    _ua_nodes.dump_to_file(output_file);
 }
 
 void model_generator::parse_namespaces(xml_node &namespaces_node)
