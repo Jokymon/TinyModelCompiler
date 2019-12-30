@@ -306,7 +306,18 @@ void ua_model::dump_to_file(const std::string &filename)
 
 void ua_model::push_back(ua_node_ptr node)
 {
+    _nodes[node->symbolic_name] = node;
     _nodeset.push_back(node);
+}
+
+bool ua_model::contains(const std::string &name)
+{
+    return (_nodes.find(name) != _nodes.end());
+}
+
+ua_node_ptr ua_model::get_node(const std::string &name)
+{
+    return _nodes[name];
 }
 
 void ua_model::append_namespace(const std::string &namespace_uri)

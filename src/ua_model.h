@@ -143,6 +143,9 @@ public:
     void dump_to_file(const std::string &filename);
 
     void push_back(ua_node_ptr node);
+    bool contains(const std::string &name);
+    ua_node_ptr get_node(const std::string &name);
+
     void append_namespace(const std::string &namespace_uri);
     void add_alias(const std::string &alias, const ua_node_id &node_id);
 
@@ -166,6 +169,7 @@ private:
 private:
     std::vector<std::string> _namespaces;
     nlohmann::fifo_map<std::string, ua_node_id> _aliases;
+    std::map<std::string, ua_node_ptr> _nodes;
     nodeset_type _nodeset;
 };
 

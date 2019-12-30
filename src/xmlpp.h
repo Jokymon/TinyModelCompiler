@@ -3,6 +3,17 @@
 
 #include <libxml/xmlmemory.h>
 #include <string>
+#include <vector>
+
+class qname {
+public:
+    explicit qname(const std::string &qname_string);
+
+    std::string to_string() const;
+
+    std::string prefix;
+    std::string local_part;
+};
 
 class xml_node {
 public:
@@ -50,6 +61,16 @@ private:
     friend class xml_document;
 };
 
+struct ns_definition {
+    ns_definition(const std::string &prefix, const std::string &href) :
+        prefix(prefix),
+        href(href)
+    {}
+
+    std::string prefix;
+    std::string href;
+};
+
 class xml_document {
 public:
     ~xml_document();
@@ -57,6 +78,8 @@ public:
     bool dump_file(const std::string &filename);
 
     xml_node root() const;
+
+    const std::vector<ns_definition>& namespaces() const;
 
     static xml_document parse_file(const std::string &filename);
     static xml_document create(const std::string &namespaceUri, const std::string &qualifiedName/*, doctype*/);
@@ -66,6 +89,7 @@ private:
 
 private:
     xmlDocPtr _doc;
+    std::vector<ns_definition> _namespaces;
 };
 
 #endif

@@ -24,9 +24,11 @@ private:
     ua_node_ptr parse_property(xml_node &property_node, ua_node_ptr &parent);
     void parse_object(xml_node &object_node);
 
-    ua_node_ptr& get_node(const std::string &browse_name);
+    void resolve_references();
 
 private:
+    std::string _target_namespace;
+    std::map<std::string, std::string> _prefix_for_ns;
     ua_model _ua_nodes;
     std::map<std::string, ua_node_ptr> _ua_nodeset2;
 

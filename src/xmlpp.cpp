@@ -1,5 +1,32 @@
 #include "xmlpp.h"
 
+qname::qname(const std::string &qname_string)
+{
+    xmlChar *local_part_xc = nullptr, *prefix_xc = nullptr;
+
+    local_part_xc = xmlSplitQName2(reinterpret_cast<const xmlChar*>(qname_string.c_str()), &prefix_xc);
+
+    if (local_part_xc != nullptr)
+    {
+        local_part = std::string(reinterpret_cast<char*>(local_part_xc));
+        xmlFree(local_part_xc);
+    }
+
+    if (prefix_xc != nullptr)
+    {
+        prefix = std::string(reinterpret_cast<char*>(prefix_xc));
+        xmlFree(prefix_xc);
+    }
+}
+
+std::string qname::to_string() const
+{
+    if (prefix.empty())
+        return local_part;
+
+    return prefix+":"+local_part;
+}
+
 bool operator==(const xml_node::node_iterator &lhs, const xml_node::node_iterator &rhs)
 {
     return lhs._node == rhs._node;
@@ -122,11 +149,32 @@ xml_node xml_document::root() const
     return xml_node(xmlDocGetRootElement(_doc));
 }
 
+const std::vector<ns_definition>& xml_document::namespaces() const
+{
+    return _namespaces;
+}
+
 xml_document xml_document::parse_file(const std::string &filename)
 {
     xml_document new_doc;
     new_doc._doc = xmlParseFile(filename.c_str());
     // TODO: handle case when _doc is now NULL
+
+    auto root = new_doc.root();
+    auto ns_ptr = root._node->ns;
+    while (ns_ptr)
+    {
+        std::string prefix;
+        if (ns_ptr->prefix)
+            prefix = std::string(reinterpret_cast<const char*>(ns_ptr->prefix));
+        std::string href;
+        if (ns_ptr->href)
+            href = std::string(reinterpret_cast<const char*>(ns_ptr->href));
+
+        new_doc._namespaces.emplace_back(prefix, href);
+        ns_ptr = ns_ptr->next;
+    }
+
     return new_doc;
 }
 
