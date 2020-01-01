@@ -242,11 +242,13 @@ void model_generator::resolve_references()
 
             if (_prefix_for_ns[prefix] == "http://opcfoundation.org/UA/")
             {
-                reference.value = _ua_nodeset2[reference_qname.local_part]->node_id.to_string();
+                if (_ua_nodeset2.find(reference_qname.local_part) != _ua_nodeset2.end())
+                    reference.value = _ua_nodeset2[reference_qname.local_part]->node_id.to_string();
             }
             else if (_prefix_for_ns[prefix] == _target_namespace)
             {
-                reference.value = _ua_nodes.get_node(reference_qname.local_part)->node_id.to_string();
+                if (_ua_nodes.contains(reference_qname.local_part))
+                    reference.value = _ua_nodes.get_node(reference_qname.local_part)->node_id.to_string();
             }
             else
             {

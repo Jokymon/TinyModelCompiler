@@ -161,7 +161,7 @@ xml_document xml_document::parse_file(const std::string &filename)
     // TODO: handle case when _doc is now NULL
 
     auto root = new_doc.root();
-    auto ns_ptr = root._node->ns;
+    auto ns_ptr = root._node->nsDef;
     while (ns_ptr)
     {
         std::string prefix;
