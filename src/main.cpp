@@ -1,4 +1,5 @@
 #include "modelgenerator.h"
+#include <CLI/CLI.hpp>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -8,13 +9,17 @@
 
 int main(int argc, char **argv)
 {
-    if (argc <= 2) {
-        printf("Usage: %s docname outputname\n", argv[0]);
-        return(0);
-    }
+    CLI::App app;
 
-    std::string docname = argv[1];
-    std::string output_name = argv[2];
+    std::string docname;
+    std::string output_name;
+
+    app.add_option("docname", docname, "ModelDesign input file")
+        ->required();
+    app.add_option("-o", output_name, "NodeSet2 output file")
+        ->required();
+
+    CLI11_PARSE(app, argc, argv);
 
     model_generator mg;
 

@@ -1,15 +1,18 @@
 #include "ua_nodeset2_generator.h"
+#include <CLI/CLI.hpp>
 #include <iostream>
 #include <string>
 
 int main(int argc, char **argv)
 {
-    if (argc <= 1) {
-        printf("Usage: %s <path to Opc.Ua.NodeSet2.xml>\n", argv[0]);
-        return(0);
-    }
+    CLI::App app;
 
-    std::string docname = argv[1];
+    std::string docname;
+
+    app.add_option("docname", docname, "Path to the Opc.Ua.NodeSet2.xml input file")
+        ->required();
+
+    CLI11_PARSE(app, argc, argv);
 
     ua_nodeset2_generator ns2gen;
     ns2gen.load_nodeset(docname);

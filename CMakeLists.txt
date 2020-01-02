@@ -9,6 +9,7 @@ project(TinyModelCompiler
 set(CMAKE_CXX_STANDARD 17)
 
 set(extern_INSTALL_DIR "${CMAKE_BINARY_DIR}/local")
+include(cli11)
 include(xml2)
 include(fifo_map)
 
@@ -84,6 +85,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
+        cli11::cli11
         xml2::xml2
         fifo_map::fifo_map
         libxml2_wrapper
@@ -110,6 +112,7 @@ target_include_directories(generate_ua_nodeset2
 
 target_link_libraries(generate_ua_nodeset2
     PUBLIC
+        cli11::cli11
         fifo_map::fifo_map
         libxml2_wrapper
 )
