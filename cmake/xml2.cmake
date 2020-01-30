@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.13)
+include(ExternalProject)
+
 set(repo_libxml2 "https://gitlab.gnome.org/GNOME/libxml2.git")
 message(STATUS "Repository for libxml2: ${repo_libxml2}")
 
@@ -14,10 +17,12 @@ ExternalProject_add(extern-libxml2
         -DCMAKE_INSTALL_PREFIX=${extern_INSTALL_DIR}
 
     INSTALL_DIR ${extern_INSTALL_DIR}
+    BUILD_BYPRODUCTS ${extern_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}xml2${CMAKE_STATIC_LIBRARY_SUFFIX}
 )
 
-add_library(xml2 STATIC IMPORTED)
-set_target_properties(xml2
-    PROPERTIES
-        IMPORTED_LOCATION ${extern_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}xml2${CMAKE_STATIC_LIBRARY_SUFFIX}
-)
+add_library(xml2::xml2 STATIC IMPORTED)
+file(MAKE_DIRECTORY ${extern_INSTALL_DIR}/include)
+set_target_properties(xml2::xml2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${extern_INSTALL_DIR}/include)
+set_target_properties(xml2::xml2 PROPERTIES IMPORTED_LOCATION ${extern_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}xml2${CMAKE_STATIC_LIBRARY_SUFFIX})
+
+add_dependencies(xml2::xml2 extern-libxml2)

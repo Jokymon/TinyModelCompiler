@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.13)
+include(ExternalProject)
+
 set(repo_fifo_map "https://github.com/nlohmann/fifo_map.git")
 message(STATUS "Repository for fifo_map: ${repo_fifo_map}")
 
@@ -15,5 +18,8 @@ ExternalProject_add(external-fifo_map
     INSTALL_DIR ${extern_INSTALL_DIR}
 )
 
-add_library(fifo_map INTERFACE IMPORTED)
-add_dependencies(fifo_map extern-fifo_map)
+add_library(fifo_map::fifo_map INTERFACE IMPORTED)
+file(MAKE_DIRECTORY ${extern_INSTALL_DIR}/include)
+set_target_properties(fifo_map::fifo_map PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${extern_INSTALL_DIR}/include)
+
+add_dependencies(fifo_map::fifo_map extern-fifo_map)
