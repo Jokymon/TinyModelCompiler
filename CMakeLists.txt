@@ -12,6 +12,19 @@ set(extern_INSTALL_DIR "${CMAKE_BINARY_DIR}/local")
 include(xml2)
 include(fifo_map)
 
+option(WARNING_AS_ERRORS "Treat any warning as compile time error" OFF)
+option(STATIC_ANALYZERS "Run static analyzers (clang-tidy, cppcheck) during compilation" ON)
+option(CODE_COVERAGE "Enable code coverage reports; requires compilation with clamg/llvm" ON)
+
+if(WARNING_AS_ERRORS)
+  set(COMPILE_WARNING_AS_ERROR "-Werror")
+endif(WARNING_AS_ERRORS)
+
+if(STATIC_ANALYZERS)
+  find_program(CPPCHECK_COMMAND NAMES cppcheck)
+  set(CMAKE_CXX_CPPCHECK "${CPPCHECK_COMMAND};--quiet;--template=gcc;--suppress=*:*/*_autogen/*")
+endif(STATIC_ANALYZERS)
+
 add_library(libxml2_wrapper)
 
 target_sources(libxml2_wrapper
@@ -34,6 +47,25 @@ target_link_libraries(libxml2_wrapper
 # -------------------------------------------------------------
 
 add_executable(${PROJECT_NAME})
+
+target_compile_options(${PROJECT_NAME}
+  PRIVATE
+    ${COMPILE_WARNING_AS_ERROR}
+    -Wall
+    -Wextra
+    -Wshadow
+    -Wnon-virtual-dtor
+    -pedantic
+    -Wold-style-cast
+    -Wcast-align
+    -Wunused
+    -Woverloaded-virtual
+    -Wpedantic
+    -Wconversion
+    -Wsign-conversion
+    -Wnull-dereference
+    -Wdouble-promotion
+)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
