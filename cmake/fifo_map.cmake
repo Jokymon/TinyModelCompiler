@@ -22,4 +22,4 @@ add_library(fifo_map::fifo_map INTERFACE IMPORTED)
 file(MAKE_DIRECTORY ${extern_INSTALL_DIR}/include)
 set_target_properties(fifo_map::fifo_map PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${extern_INSTALL_DIR}/include)
 
-add_dependencies(fifo_map::fifo_map extern-fifo_map)
+add_dependencies(fifo_map::fifo_map external-fifo_map)
