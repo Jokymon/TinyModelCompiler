@@ -50,7 +50,7 @@ void xml_node::set_data(const std::string &data)
                 data.c_str()));
 }
 
-bool xml_node::has_attribute(const std::string &name) const
+bool xml_node::has_attribute(const std::string &/*name*/) const
 {
     return true;
 }
@@ -96,9 +96,7 @@ xml_node xml_node::create_child(const std::string &tag_name)
 
 xml_node::operator bool() const
 {
-    if (!_node)
-        return false;
-    return true;
+    return _node != nullptr;
 }
 
 xml_document::~xml_document()
@@ -116,9 +114,7 @@ bool xml_document::dump_file(const std::string &filename)
                                       _doc,
                                       "utf-8",
                                       1);
-    if (result > 0)
-        return true;
-    return false;
+    return (result > 0);
 }
 
 xml_node xml_document::root() const

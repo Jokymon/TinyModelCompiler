@@ -65,11 +65,6 @@ private:
     std::ostream &out;
 };
 
-ua_nodeset2_generator::ua_nodeset2_generator() :
-    _nodeset2()
-{
-}
-
 void ua_nodeset2_generator::load_nodeset(const std::string &nodeset_file)
 {
     _nodeset2.populate_from_file(nodeset_file);

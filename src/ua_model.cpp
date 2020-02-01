@@ -6,12 +6,6 @@
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-ua_node_id::ua_node_id() :
-    namespace_id(0),
-    id()
-{
-}
-
 ua_node_id::ua_node_id(int namespace_id, const std::string &name) :
     namespace_id(namespace_id),
     id(name)
@@ -48,9 +42,10 @@ std::string ua_node_id::to_string() const
 
 char look_ahead(const std::string &s, int &pos)
 {
-    if (pos < s.length())
-        return s[pos];
-    return 255;
+    if (static_cast<size_t>(pos) < s.length())
+        return s[static_cast<size_t>(pos)];
+    else
+        return static_cast<char>(255);
 }
 
 bool is_digit(char ch)
@@ -60,7 +55,7 @@ bool is_digit(char ch)
 
 void match(const std::string &s, int &pos, char expected)
 {
-    if (s[pos] == expected)
+    if (s[static_cast<size_t>(pos)] == expected)
     {
         pos++;
         return;
@@ -72,7 +67,7 @@ void match(const std::string &s, int &pos, char expected)
 
 void skip(const std::string &s, int &pos)
 {
-    if (pos < s.length())
+    if (static_cast<size_t>(pos) < s.length())
     {
         pos++;
         return;
@@ -127,7 +122,7 @@ std::variant<int, std::string> parse_address(const std::string &s, int &pos)
         return std::string();
     }
     else
-        throw std::invalid_argument("Address part startnot supported: "+look_ahead(s, pos));
+        throw std::invalid_argument(std::string("Address part startnot supported: ") += look_ahead(s, pos));
 }
 
 ua_node_id parse_node_id(const std::string &s)
@@ -145,6 +140,9 @@ ua_node_id parse_node_id(const std::string &s)
         return ua_node_id(namespace_id, std::get<int>(address));
     else if (std::holds_alternative<std::string>(address))
         return ua_node_id(namespace_id, std::get<std::string>(address));
+    else
+        // Do somethings correct:
+        return ua_node_id();
 }
 
 // --------------------------------------------------------------
@@ -155,8 +153,7 @@ ua_node_id ua_node_id::from_string(const std::string &s)
 }
 
 qualified_name::qualified_name() :
-    namespace_index(0),
-    name()
+    namespace_index(0)
 {
 }
 
@@ -245,7 +242,7 @@ private:
         auto display_name = x_node.create_child("DisplayName");
         display_name.set_data(u_node.browse_name.name);
 
-        if (u_node.references.size()>0)
+        if (not u_node.references.empty())
         {
             auto references_node = x_node.create_child("References");
             for (auto &reference : u_node.references)
@@ -262,10 +259,6 @@ private:
 private:
     xml_node &node_set;
 };
-
-ua_model::ua_model()
-{
-}
 
 void ua_model::populate_from_file(const std::string &filename)
 {
@@ -373,12 +366,12 @@ void ua_model::parse_variable(xml_node &variable_node)
     auto new_node = std::make_shared<ua_variable>();
     load_ua_node(variable_node, *new_node.get());
 
-    bool is_abstract = false;
+//    bool is_abstract = false;
     if (variable_node.has_attribute("IsAbstract"))
     {
         std::string abstract = variable_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
+//        if (abstract=="true")
+//            is_abstract = true;
     }
 
     _nodeset.push_back(new_node);
@@ -389,12 +382,12 @@ void ua_model::parse_object(xml_node &object_node)
     auto new_node = std::make_shared<ua_object>();
     load_ua_node(object_node, *new_node.get());
 
-    bool is_abstract = false;
+//    bool is_abstract = false;
     if (object_node.has_attribute("IsAbstract"))
     {
         std::string abstract = object_node.attribute("IsAbstract");
-        if (abstract=="true")
-            is_abstract = true;
+//        if (abstract=="true")
+//            is_abstract = true;
     }
 
     _nodeset.push_back(new_node);

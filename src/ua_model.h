@@ -12,11 +12,11 @@ class xml_node;
 class ua_node_id
 {
 public:
-    ua_node_id();
+    ua_node_id()=default;
     ua_node_id(int namespace_id, const std::string &name);
     ua_node_id(int namespace_id, int node_id);
 
-    int namespace_id;
+    int namespace_id=0;
     std::variant<int, std::string> id;
 
     std::string to_string() const;
@@ -55,6 +55,7 @@ class ua_object;
 class ua_node_visitor
 {
 public:
+    virtual ~ua_node_visitor()=default;
     virtual void visit(ua_node&) =0;
     virtual void visit(ua_variable_type&) =0;
     virtual void visit(ua_object_type&) =0;
@@ -65,6 +66,7 @@ public:
 class ua_node
 {
 public:
+    virtual ~ua_node()=default;
     ua_node_id node_id;
     qualified_name browse_name;
     std::string symbolic_name;
@@ -130,7 +132,8 @@ class ua_model
 public:
     using iterator = nodeset_type::iterator;
 
-    ua_model();
+    ua_model()=default;
+    virtual ~ua_model()=default;
 
     void populate_from_file(const std::string &filename);
     void dump_to_file(const std::string &filename);

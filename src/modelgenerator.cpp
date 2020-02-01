@@ -56,9 +56,7 @@ static bool starts_with(const std::string& str, const std::string& prefix)
     return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
 }
 
-model_generator::model_generator() :
-    _ua_nodes(),
-    _ua_nodeset2()
+model_generator::model_generator()
 {
     populate_node_list(_ua_nodeset2);
 
@@ -195,8 +193,8 @@ void model_generator::parse_object(xml_node &object_node)
                     if (grand_child.attribute("IsInverse")=="true")
                         is_inverse = true;
 
-                std::string reference_type = "";
-                std::string target_id = "";
+                std::string reference_type;
+                std::string target_id;
 
                 for (auto reference_property : grand_child)
                 {
