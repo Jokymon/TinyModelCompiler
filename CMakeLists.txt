@@ -13,8 +13,6 @@ include(xml2)
 include(fifo_map)
 
 option(WARNING_AS_ERRORS "Treat any warning as compile time error" OFF)
-option(STATIC_ANALYZERS "Run static analyzers (clang-tidy, cppcheck) during compilation" ON)
-option(CODE_COVERAGE "Enable code coverage reports; requires compilation with clamg/llvm" ON)
 
 if(WARNING_AS_ERRORS)
   set(COMPILE_WARNING_AS_ERROR "-Werror")

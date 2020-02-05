@@ -79,7 +79,7 @@ void model_generator::load_model(const std::string &model_file)
 
     for (auto child : root)
     {
-// Missing elements: "ReferenceType" "DataType" "Method" "Variable" "Property" "Dictionary" "View"
+    // TODO: Missing elements: "ReferenceType" "DataType" "Method" "Variable" "Property" "Dictionary" "View"
         if (child.name() == "Namespaces")
             parse_namespaces(child);
         else if (child.name() == "VariableType")

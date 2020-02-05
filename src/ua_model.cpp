@@ -141,8 +141,7 @@ ua_node_id parse_node_id(const std::string &s)
     else if (std::holds_alternative<std::string>(address))
         return ua_node_id(namespace_id, std::get<std::string>(address));
     else
-        // Do somethings correct:
-        return ua_node_id();
+        throw std::invalid_argument(std::string("String contains an invalid NodeId: ") += s);
 }
 
 // --------------------------------------------------------------
