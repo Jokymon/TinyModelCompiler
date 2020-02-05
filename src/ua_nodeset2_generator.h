@@ -10,7 +10,7 @@
 class ua_nodeset2_generator
 {
 public:
-    ua_nodeset2_generator();
+    ua_nodeset2_generator() = default;
 
     void load_nodeset(const std::string &nodeset_file);
 

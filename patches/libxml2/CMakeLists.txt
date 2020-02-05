@@ -48,6 +48,11 @@ CHECK_INCLUDE_FILE(stdarg.h HAVE_STDARG_H)
 CHECK_INCLUDE_FILE(stdlib.h HAVE_STDLIB_H)
 CHECK_INCLUDE_FILE(time.h HAVE_TIME_H)
 CHECK_INCLUDE_FILE(fcntl.h HAVE_FCNTL_H)
+CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
+
+include(CheckSymbolExists)
+CHECK_SYMBOL_EXISTS(va_copy stdarg.h HAVE_VA_COPY)
+CHECK_SYMBOL_EXISTS(__va_copy stdarg.h HAVE___VA_COPY)
 
 configure_file(
     config.h.in
