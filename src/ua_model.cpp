@@ -6,14 +6,14 @@
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-ua_node_id::ua_node_id(int namespace_id, const std::string &name) :
-    namespace_id(namespace_id),
+ua_node_id::ua_node_id(int a_namespace_id, const std::string &name) :
+    namespace_id(a_namespace_id),
     id(name)
 {
 }
 
-ua_node_id::ua_node_id(int namespace_id, int node_id) :
-    namespace_id(namespace_id),
+ua_node_id::ua_node_id(int a_namespace_id, int node_id) :
+    namespace_id(a_namespace_id),
     id(node_id)
 {
 }
@@ -156,15 +156,15 @@ qualified_name::qualified_name() :
 {
 }
 
-qualified_name::qualified_name(const std::string &name) :
+qualified_name::qualified_name(const std::string &a_name) :
     namespace_index(0),
-    name(name)
+    name(a_name)
 {
 }
 
-qualified_name::qualified_name(int namespace_index, const std::string &name) :
-    namespace_index(namespace_index),
-    name(name)
+qualified_name::qualified_name(int a_namespace_index, const std::string &a_name) :
+    namespace_index(a_namespace_index),
+    name(a_name)
 {
 }
 
@@ -177,10 +177,10 @@ std::string qualified_name::to_string() const
     return std::to_string(namespace_index) + std::string(":") + name;
 }
 
-reference::reference(const std::string &reference_type, bool is_forward, const std::string &value) :
-    reference_type(reference_type),
-    is_forward(is_forward),
-    value(value)
+reference::reference(const std::string &a_reference_type, bool a_is_forward, const std::string &a_value) :
+    reference_type(a_reference_type),
+    is_forward(a_is_forward),
+    value(a_value)
 {
 }
 
@@ -189,8 +189,8 @@ reference::reference(const std::string &reference_type, bool is_forward, const s
 class node_set_generator : public ua_node_visitor
 {
 public:
-    explicit node_set_generator(xml_node &node_set) :
-        node_set(node_set)
+    explicit node_set_generator(xml_node &a_node_set) :
+        node_set(a_node_set)
     {}
 
     void visit(ua_node &node) override
@@ -306,38 +306,38 @@ void ua_model::dump_to_file(const std::string &filename)
 
 void ua_model::push_back(ua_node_ptr node)
 {
-    _nodes[node->symbolic_name] = node;
-    _nodeset.push_back(node);
+    m_nodes[node->symbolic_name] = node;
+    m_nodeset.push_back(node);
 }
 
 bool ua_model::contains(const std::string &name)
 {
-    return (_nodes.find(name) != _nodes.end());
+    return (m_nodes.find(name) != m_nodes.end());
 }
 
 ua_node_ptr ua_model::get_node(const std::string &name)
 {
-    return _nodes[name];
+    return m_nodes[name];
 }
 
 void ua_model::append_namespace(const std::string &namespace_uri)
 {
-    _namespaces.push_back(namespace_uri);
+    m_namespaces.push_back(namespace_uri);
 }
 
 void ua_model::add_alias(const std::string &alias, const ua_node_id &node_id)
 {
-    _aliases[alias] = node_id;
+    m_aliases[alias] = node_id;
 }
 
 ua_model::iterator ua_model::begin()
 {
-    return _nodeset.begin();
+    return m_nodeset.begin();
 }
 
 ua_model::iterator ua_model::end()
 {
-    return _nodeset.end();
+    return m_nodeset.end();
 }
 
 void ua_model::parse_alias(xml_node &alias_node)
@@ -359,7 +359,7 @@ void ua_model::parse_variable_type(xml_node &variable_type_node)
         // TODO: convert to int
     }
 
-    _nodeset.push_back(new_node);
+    m_nodeset.push_back(new_node);
 }
 
 void ua_model::parse_object_type(xml_node &object_type_node)
@@ -368,7 +368,7 @@ void ua_model::parse_object_type(xml_node &object_type_node)
     load_ua_node(object_type_node, *new_node.get());
     load_ua_type(object_type_node, *new_node.get());
     
-    _nodeset.push_back(new_node);
+    m_nodeset.push_back(new_node);
 }
 
 void ua_model::parse_variable(xml_node &variable_node)
@@ -384,7 +384,7 @@ void ua_model::parse_variable(xml_node &variable_node)
 //            is_abstract = true;
     }
 
-    _nodeset.push_back(new_node);
+    m_nodeset.push_back(new_node);
 }
 
 void ua_model::parse_object(xml_node &object_node)
@@ -400,7 +400,7 @@ void ua_model::parse_object(xml_node &object_node)
 //            is_abstract = true;
     }
 
-    _nodeset.push_back(new_node);
+    m_nodeset.push_back(new_node);
 }
 
 void ua_model::load_ua_node(xml_node &x_node, ua_node &u_node)
@@ -431,7 +431,7 @@ void ua_model::load_ua_type(xml_node &x_node, ua_type &u_node)
 void ua_model::generate_namespaces(xml_node &root)
 {
     auto ns_uris = root.create_child("NamespaceUris");
-    for (const auto &url : _namespaces)
+    for (const auto &url : m_namespaces)
     {
         auto ns_uri = ns_uris.create_child("Uri");
         ns_uri.set_data(url);
@@ -440,10 +440,10 @@ void ua_model::generate_namespaces(xml_node &root)
 
 void ua_model::generate_aliases(xml_node &root)
 {
-    if (!_aliases.empty())
+    if (!m_aliases.empty())
     {
         auto aliases_node = root.create_child("Aliases");
-        for (auto alias : _aliases)
+        for (auto alias : m_aliases)
         {
             auto alias_node = aliases_node.create_child("Alias");
             alias_node.set_data(alias.second.to_string());
@@ -455,7 +455,7 @@ void ua_model::generate_aliases(xml_node &root)
 void ua_model::generate_nodes(xml_node &root)
 {
     node_set_generator generator(root);
-    for (const auto &ua_node : _nodeset)
+    for (const auto &ua_node : m_nodeset)
     {
         generator.visit(*ua_node.get());
     }

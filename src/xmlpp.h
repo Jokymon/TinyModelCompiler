@@ -56,15 +56,15 @@ private:
     xml_node(xmlNodePtr node);
 
 private:
-    xmlNodePtr _node;
+    xmlNodePtr m_node;
 
     friend class xml_document;
 };
 
 struct ns_definition {
-    ns_definition(const std::string &prefix, const std::string &href) :
-        prefix(prefix),
-        href(href)
+    ns_definition(const std::string &a_prefix, const std::string &a_href) :
+        prefix(a_prefix),
+        href(a_href)
     {}
 
     std::string prefix;
@@ -88,8 +88,8 @@ private:
     xml_document();
 
 private:
-    xmlDocPtr _doc;
-    std::vector<ns_definition> _namespaces;
+    xmlDocPtr m_doc;
+    std::vector<ns_definition> m_namespaces;
 };
 
 #endif

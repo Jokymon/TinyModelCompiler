@@ -58,11 +58,11 @@ static bool starts_with(const std::string& str, const std::string& prefix)
 
 model_generator::model_generator()
 {
-    populate_node_list(_ua_nodeset2);
+    populate_node_list(m_ua_nodeset2);
 
     for (const auto &alias : Aliases)
     {
-        _ua_nodes.add_alias(alias.alias, ua_node_id(0, alias.id));
+        m_ua_nodes.add_alias(alias.alias, ua_node_id(0, alias.id));
     }
 }
 
@@ -77,11 +77,11 @@ void model_generator::load_model(const std::string &model_file)
         return;
     }
 
-    _target_namespace = root.attribute("TargetNamespace");
+    m_target_namespace = root.attribute("TargetNamespace");
     const auto &namespace_prefixes{doc.namespaces()};
     for (const auto &definition : namespace_prefixes)
     {
-        _prefix_for_ns[definition.prefix] = definition.href;
+        m_prefix_for_ns[definition.prefix] = definition.href;
     }
 
     for (auto child : root)
@@ -101,7 +101,7 @@ void model_generator::load_model(const std::string &model_file)
 void model_generator::write_nodeset2(const std::string &output_file)
 {
     resolve_references();
-    _ua_nodes.dump_to_file(output_file);
+    m_ua_nodes.dump_to_file(output_file);
 }
 
 void model_generator::parse_namespaces(xml_node &namespaces_node)
@@ -112,7 +112,7 @@ void model_generator::parse_namespaces(xml_node &namespaces_node)
             continue;
 
         std::string url = namespace_node.data();
-        _ua_nodes.append_namespace(url);
+        m_ua_nodes.append_namespace(url);
     }
 }
 
@@ -126,7 +126,7 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
     new_node->references.emplace_back("HasSubtype", false, base_type);
 
-    _ua_nodes.push_back(new_node);
+    m_ua_nodes.push_back(new_node);
 }
 
 void model_generator::parse_object_type(xml_node &object_type_node)
@@ -138,7 +138,7 @@ void model_generator::parse_object_type(xml_node &object_type_node)
     new_node->node_id = ua_node_id(NamespaceIndex, 1000);
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
     new_node->references.emplace_back("HasSubtype", false, base_type);
-    _ua_nodes.push_back(new_node);
+    m_ua_nodes.push_back(new_node);
 
     for (auto child : object_type_node)
     {
@@ -171,7 +171,7 @@ ua_node_ptr model_generator::parse_property(xml_node &property_node, ua_node_ptr
     new_node->references.emplace_back("HasModellingRule", true, "ua:ModellingRule_Mandatory");
     new_node->references.emplace_back("HasProperty", false, parent->node_id.to_string());
 
-    _ua_nodes.push_back(new_node);
+    m_ua_nodes.push_back(new_node);
 
     return new_node;
 }
@@ -223,36 +223,36 @@ void model_generator::parse_object(xml_node &object_node)
 
     new_node->references.emplace_back("HasTypeDefinition", true, type_definition);
 
-    _ua_nodes.push_back(new_node);
+    m_ua_nodes.push_back(new_node);
 }
 
 void model_generator::resolve_references()
 {
-    for (auto &node : _ua_nodes)
+    for (auto &node : m_ua_nodes)
     {
         for (auto &reference : node->references)
         {
             qname reference_qname{reference.value};
             std::string prefix = reference_qname.prefix;
-            if (_prefix_for_ns.find(prefix) == _prefix_for_ns.end())
+            if (m_prefix_for_ns.find(prefix) == m_prefix_for_ns.end())
             {
                 std::cerr << "Cannot find namespace for prefix '" << prefix << "'\n";
                 continue;
             }
 
-            if (_prefix_for_ns[prefix] == "http://opcfoundation.org/UA/")
+            if (m_prefix_for_ns[prefix] == "http://opcfoundation.org/UA/")
             {
-                if (_ua_nodeset2.find(reference_qname.local_part) != _ua_nodeset2.end())
-                    reference.value = _ua_nodeset2[reference_qname.local_part]->node_id.to_string();
+                if (m_ua_nodeset2.find(reference_qname.local_part) != m_ua_nodeset2.end())
+                    reference.value = m_ua_nodeset2[reference_qname.local_part]->node_id.to_string();
             }
-            else if (_prefix_for_ns[prefix] == _target_namespace)
+            else if (m_prefix_for_ns[prefix] == m_target_namespace)
             {
-                if (_ua_nodes.contains(reference_qname.local_part))
-                    reference.value = _ua_nodes.get_node(reference_qname.local_part)->node_id.to_string();
+                if (m_ua_nodes.contains(reference_qname.local_part))
+                    reference.value = m_ua_nodes.get_node(reference_qname.local_part)->node_id.to_string();
             }
             else
             {
-                std::cerr << "Unknown namespace URI: " << _prefix_for_ns[prefix] << std::endl;
+                std::cerr << "Unknown namespace URI: " << m_prefix_for_ns[prefix] << std::endl;
             }
         }
     }

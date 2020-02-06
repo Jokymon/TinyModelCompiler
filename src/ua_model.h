@@ -167,10 +167,10 @@ private:
     void generate_nodes(xml_node &root);
 
 private:
-    std::vector<std::string> _namespaces;
-    nlohmann::fifo_map<std::string, ua_node_id> _aliases;
-    std::map<std::string, ua_node_ptr> _nodes;
-    nodeset_type _nodeset;
+    std::vector<std::string> m_namespaces;
+    nlohmann::fifo_map<std::string, ua_node_id> m_aliases;
+    std::map<std::string, ua_node_ptr> m_nodes;
+    nodeset_type m_nodeset;
 };
 
 #endif

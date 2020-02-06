@@ -27,10 +27,10 @@ private:
     void resolve_references();
 
 private:
-    std::string _target_namespace;
-    std::map<std::string, std::string> _prefix_for_ns;
-    ua_model _ua_nodes;
-    std::map<std::string, ua_node_ptr> _ua_nodeset2;
+    std::string m_target_namespace;
+    std::map<std::string, std::string> m_prefix_for_ns;
+    ua_model m_ua_nodes;
+    std::map<std::string, ua_node_ptr> m_ua_nodeset2;
 
     const int NamespaceIndex = 1;
 };

@@ -55,25 +55,25 @@ xml_node::node_iterator::node_iterator(xmlNodePtr node) :
 }
 
 xml_node::xml_node(xmlNodePtr node) :
-    _node(node)
+    m_node(node)
 {
 }
 
 std::string xml_node::name() const
 {
-    return std::string(reinterpret_cast<const char*>(_node->name));
+    return std::string(reinterpret_cast<const char*>(m_node->name));
 }
 
 std::string xml_node::data() const
 {
     return std::string(reinterpret_cast<const char*>(
-                xmlNodeGetContent(_node))
+                xmlNodeGetContent(m_node))
                 );
 }
 
 void xml_node::set_data(const std::string &data)
 {
-    xmlNodeSetContent(_node, reinterpret_cast<const xmlChar*>(
+    xmlNodeSetContent(m_node, reinterpret_cast<const xmlChar*>(
                 data.c_str()));
 }
 
@@ -84,7 +84,7 @@ bool xml_node::has_attribute(const std::string &/*name*/) const
 
 std::string xml_node::attribute(const std::string &name) const
 {
-    char* attribute = (char*)xmlGetProp(_node, (xmlChar*)name.c_str());
+    char* attribute = (char*)xmlGetProp(m_node, (xmlChar*)name.c_str());
     if (attribute)
         return std::string(attribute);
     return std::string();
@@ -93,7 +93,7 @@ std::string xml_node::attribute(const std::string &name) const
 void xml_node::set_attribute(const std::string &name,
                             const std::string &value)
 {
-    xmlSetProp(_node,
+    xmlSetProp(m_node,
         reinterpret_cast<const xmlChar*>(name.c_str()),
         reinterpret_cast<const xmlChar*>(value.c_str())
     );
@@ -101,7 +101,7 @@ void xml_node::set_attribute(const std::string &name,
 
 xml_node::node_iterator xml_node::begin()
 {
-    return node_iterator(_node->children);
+    return node_iterator(m_node->children);
 }
 
 xml_node::node_iterator xml_node::end()
@@ -113,7 +113,7 @@ xml_node xml_node::create_child(const std::string &tag_name)
 {
     xml_node new_node(
             xmlNewChild(
-                _node,
+                m_node,
                 nullptr,
                 (xmlChar*)tag_name.c_str(),
                 nullptr)
@@ -123,22 +123,22 @@ xml_node xml_node::create_child(const std::string &tag_name)
 
 xml_node::operator bool() const
 {
-    return _node != nullptr;
+    return m_node != nullptr;
 }
 
 xml_document::~xml_document()
 {
-    if (_doc)
+    if (m_doc)
     {
-        xmlFreeDoc(_doc);
-        _doc = nullptr;
+        xmlFreeDoc(m_doc);
+        m_doc = nullptr;
     }
 }
 
 bool xml_document::dump_file(const std::string &filename)
 {
     int result = xmlSaveFormatFileEnc(filename.c_str(),
-                                      _doc,
+                                      m_doc,
                                       "utf-8",
                                       1);
     return (result > 0);
@@ -146,22 +146,22 @@ bool xml_document::dump_file(const std::string &filename)
 
 xml_node xml_document::root() const
 {
-    return xml_node(xmlDocGetRootElement(_doc));
+    return xml_node(xmlDocGetRootElement(m_doc));
 }
 
 const std::vector<ns_definition>& xml_document::namespaces() const
 {
-    return _namespaces;
+    return m_namespaces;
 }
 
 xml_document xml_document::parse_file(const std::string &filename)
 {
     xml_document new_doc;
-    new_doc._doc = xmlParseFile(filename.c_str());
+    new_doc.m_doc = xmlParseFile(filename.c_str());
     // TODO: handle case when _doc is now NULL
 
     auto root = new_doc.root();
-    auto ns_ptr = root._node->nsDef;
+    auto ns_ptr = root.m_node->nsDef;
     while (ns_ptr)
     {
         std::string prefix;
@@ -171,7 +171,7 @@ xml_document xml_document::parse_file(const std::string &filename)
         if (ns_ptr->href)
             href = std::string(reinterpret_cast<const char*>(ns_ptr->href));
 
-        new_doc._namespaces.emplace_back(prefix, href);
+        new_doc.m_namespaces.emplace_back(prefix, href);
         ns_ptr = ns_ptr->next;
     }
 
@@ -181,10 +181,10 @@ xml_document xml_document::parse_file(const std::string &filename)
 xml_document xml_document::create(const std::string &namespaceUri, const std::string &qualifiedName)
 {
     xml_document new_doc;
-    new_doc._doc = xmlNewDoc((xmlChar*)"1.0");
+    new_doc.m_doc = xmlNewDoc((xmlChar*)"1.0");
 
     auto root_node = xmlNewNode(nullptr, (xmlChar*)qualifiedName.c_str());
-    xmlDocSetRootElement(new_doc._doc, root_node);
+    xmlDocSetRootElement(new_doc.m_doc, root_node);
 
     if (!namespaceUri.empty())
     {
@@ -196,7 +196,7 @@ xml_document xml_document::create(const std::string &namespaceUri, const std::st
 }
 
 xml_document::xml_document() :
-    _doc(nullptr)
+    m_doc(nullptr)
 {
 }
 
