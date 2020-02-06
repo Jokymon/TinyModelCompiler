@@ -46,10 +46,12 @@ const std::array<alias, 35> Aliases = {{
     { "HasDescription", 39 }
 }};
 
-static bool ends_with(const std::string& str, const std::string& suffix)
-{
-    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
-}
+const int DefaultPlaceHolderId = 1000;
+
+//static bool ends_with(const std::string& str, const std::string& suffix)
+//{
+//    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+//}
 
 static bool starts_with(const std::string& str, const std::string& prefix)
 {
@@ -122,7 +124,7 @@ void model_generator::parse_variable_type(xml_node &variable_type_node)
     std::string base_type = variable_type_node.attribute("BaseType");
 
     auto new_node = std::make_shared<ua_variable_type>();
-    new_node->node_id = ua_node_id(NamespaceIndex, 1000);
+    new_node->node_id = ua_node_id(NamespaceIndex, DefaultPlaceHolderId);
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
     new_node->references.emplace_back("HasSubtype", false, base_type);
 
@@ -135,7 +137,7 @@ void model_generator::parse_object_type(xml_node &object_type_node)
     std::string base_type = object_type_node.attribute("BaseType");
 
     ua_node_ptr new_node = std::make_shared<ua_object_type>();
-    new_node->node_id = ua_node_id(NamespaceIndex, 1000);
+    new_node->node_id = ua_node_id(NamespaceIndex, DefaultPlaceHolderId);
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
     new_node->references.emplace_back("HasSubtype", false, base_type);
     m_ua_nodes.push_back(new_node);
@@ -161,7 +163,7 @@ ua_node_ptr model_generator::parse_property(xml_node &property_node, ua_node_ptr
     std::string symbolic_name = property_node.attribute("SymbolicName");
 
     auto new_node = std::make_shared<ua_variable>();
-    new_node->node_id = ua_node_id(NamespaceIndex, 1000);
+    new_node->node_id = ua_node_id(NamespaceIndex, DefaultPlaceHolderId);
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
     new_node->parent = parent;
     new_node->data_type = property_node.attribute("DataType");
@@ -182,7 +184,7 @@ void model_generator::parse_object(xml_node &object_node)
     std::string type_definition = object_node.attribute("TypeDefinition");
 
     auto new_node = std::make_shared<ua_object>();
-    new_node->node_id = ua_node_id(NamespaceIndex, 1000);
+    new_node->node_id = ua_node_id(NamespaceIndex, DefaultPlaceHolderId);
     new_node->browse_name = qualified_name(NamespaceIndex, symbolic_name);
 
     for (auto child : object_node)

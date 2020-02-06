@@ -304,7 +304,7 @@ void ua_model::dump_to_file(const std::string &filename)
     doc.dump_file(filename);
 }
 
-void ua_model::push_back(ua_node_ptr node)
+void ua_model::push_back(const ua_node_ptr &node)
 {
     m_nodes[node->symbolic_name] = node;
     m_nodeset.push_back(node);
@@ -443,7 +443,7 @@ void ua_model::generate_aliases(xml_node &root)
     if (!m_aliases.empty())
     {
         auto aliases_node = root.create_child("Aliases");
-        for (auto alias : m_aliases)
+        for (const auto &alias : m_aliases)
         {
             auto alias_node = aliases_node.create_child("Alias");
             alias_node.set_data(alias.second.to_string());

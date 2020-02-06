@@ -142,7 +142,7 @@ public:
     void populate_from_file(const std::string &filename);
     void dump_to_file(const std::string &filename);
 
-    void push_back(ua_node_ptr node);
+    void push_back(const ua_node_ptr &node);
     bool contains(const std::string &name);
     ua_node_ptr get_node(const std::string &name);
 

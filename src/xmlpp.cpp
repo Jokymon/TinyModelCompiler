@@ -2,7 +2,8 @@
 
 qname::qname(const std::string &qname_string)
 {
-    xmlChar *local_part_xc = nullptr, *prefix_xc = nullptr;
+    xmlChar *local_part_xc = nullptr;
+    xmlChar *prefix_xc = nullptr;
 
     local_part_xc = xmlSplitQName2(reinterpret_cast<const xmlChar*>(qname_string.c_str()), &prefix_xc);
 
